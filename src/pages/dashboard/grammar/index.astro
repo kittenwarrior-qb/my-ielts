@@ -1,0 +1,35 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import Header from '../../../components/Header';
+import Footer from '../../../components/Footer';
+---
+
+<Layout title="Grammar - Dashboard">
+  <Header client:load />
+  <main class="flex-1">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div class="mb-8">
+        <h1 class="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+          Grammar
+        </h1>
+        <p class="text-xl text-gray-600 dark:text-gray-400">
+          Master IELTS grammar structures
+        </p>
+      </div>
+
+      <div class="card p-12 text-center">
+        <div class="text-6xl mb-4">📖</div>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+          Coming Soon
+        </h2>
+        <p class="text-gray-600 dark:text-gray-400 mb-6">
+          Grammar lessons are being prepared
+        </p>
+        <a href="/dashboard" class="btn btn-primary">
+          Back to Dashboard
+        </a>
+      </div>
+    </div>
+  </main>
+  <Footer />
+</Layout>

@@ -96,7 +96,10 @@ export function debounce<T extends (...args: any[]) => any>(
   };
 }
 
-// Class names helper
-export function cn(...classes: (string | undefined | null | false)[]): string {
-  return classes.filter(Boolean).join(' ');
+// Class names helper with tailwind-merge
+import { type ClassValue, clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
 }
