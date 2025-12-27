@@ -1,0 +1,127 @@
+[
+  {
+    "id": "1",
+    "word": "abundant",
+    "phonetic": "/əˈbʌndənt/",
+    "audioUrl": "",
+    "userAudioUrl": "",
+    "types": [
+      {
+        "type": "adjective",
+        "meanings": ["existing in large quantities", "more than enough", "plentiful"]
+      }
+    ],
+    "examples": [
+      "The country has abundant natural resources.",
+      "There is abundant evidence to support this theory.",
+      "Fish are abundant in the lake."
+    ],
+    "synonyms": ["plentiful", "copious", "ample", "profuse"],
+    "wordForms": ["abundance", "abundantly"],
+    "topics": ["environment", "general"],
+    "level": "intermediate",
+    "band": 6.5,
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2024-01-01T00:00:00Z"
+  },
+  {
+    "id": "2",
+    "word": "beneficial",
+    "phonetic": "/ˌbenɪˈfɪʃl/",
+    "audioUrl": "",
+    "userAudioUrl": "",
+    "types": [
+      {
+        "type": "adjective",
+        "meanings": ["having a good effect", "advantageous", "helpful"]
+      }
+    ],
+    "examples": [
+      "Regular exercise is beneficial to health.",
+      "The new policy will be beneficial for small businesses.",
+      "A good diet is beneficial for your overall well-being."
+    ],
+    "synonyms": ["advantageous", "helpful", "useful", "favorable"],
+    "wordForms": ["benefit", "beneficially", "beneficiary"],
+    "topics": ["health", "business"],
+    "level": "intermediate",
+    "band": 6.0,
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2024-01-01T00:00:00Z"
+  },
+  {
+    "id": "3",
+    "word": "comprehensive",
+    "phonetic": "/ˌkɒmprɪˈhensɪv/",
+    "audioUrl": "",
+    "userAudioUrl": "",
+    "types": [
+      {
+        "type": "adjective",
+        "meanings": ["including all or nearly all elements", "complete", "thorough"]
+      }
+    ],
+    "examples": [
+      "The report provides a comprehensive analysis of the situation.",
+      "Students need comprehensive knowledge of the subject.",
+      "We offer comprehensive insurance coverage."
+    ],
+    "synonyms": ["complete", "thorough", "extensive", "all-inclusive"],
+    "wordForms": ["comprehensively", "comprehensiveness"],
+    "topics": ["education", "business"],
+    "level": "advanced",
+    "band": 7.0,
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2024-01-01T00:00:00Z"
+  },
+  {
+    "id": "4",
+    "word": "deteriorate",
+    "phonetic": "/dɪˈtɪəriəreɪt/",
+    "audioUrl": "",
+    "userAudioUrl": "",
+    "types": [
+      {
+        "type": "verb",
+        "meanings": ["to become worse", "to decline in quality", "to degrade"]
+      }
+    ],
+    "examples": [
+      "His health began to deteriorate rapidly.",
+      "The building has deteriorated over the years.",
+      "Relations between the two countries have deteriorated."
+    ],
+    "synonyms": ["decline", "worsen", "degrade", "decay"],
+    "wordForms": ["deterioration", "deteriorating"],
+    "topics": ["health", "environment"],
+    "level": "advanced",
+    "band": 7.5,
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2024-01-01T00:00:00Z"
+  },
+  {
+    "id": "5",
+    "word": "enhance",
+    "phonetic": "/ɪnˈhɑːns/",
+    "audioUrl": "",
+    "userAudioUrl": "",
+    "types": [
+      {
+        "type": "verb",
+        "meanings": ["to improve the quality or value of something", "to intensify", "to increase"]
+      }
+    ],
+    "examples": [
+      "The new features enhance the user experience.",
+      "Good lighting can enhance the appearance of a room.",
+      "Technology has enhanced our ability to communicate."
+    ],
+    "synonyms": ["improve", "boost", "augment", "strengthen"],
+    "wordForms": ["enhancement", "enhanced", "enhancing"],
+    "topics": ["technology", "general"],
+    "level": "intermediate",
+    "band": 6.5,
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2024-01-01T00:00:00Z"
+  }
+]

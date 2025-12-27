@@ -1,0 +1,49 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import AdminLayout from '../../../components/admin/AdminLayout';
+import VocabularyManagement from '../../../components/admin/VocabularyManagement';
+import { requireAuth } from '../../../lib/auth';
+import { vocabularyRepo } from '../../../lib/repositories/vocabulary';
+
+// Check authentication
+if (!requireAuth(Astro.cookies)) {
+  return Astro.redirect('/admin');
+}
+
+// Get query params
+const url = new URL(Astro.request.url);
+const page = parseInt(url.searchParams.get('page') || '1');
+const search = url.searchParams.get('search') || undefined;
+
+// Fetch vocabulary data
+const { items, total, totalPages } = await vocabularyRepo.getPaginated(page, 20, {
+  search,
+});
+
+// Serialize data
+const vocabularyData = items.map(item => ({
+  ...item,
+  audioUrl: item.audioUrl || undefined,
+  userAudioUrl: item.userAudioUrl || undefined,
+  types: item.types as Array<{ type: string; meanings: string[] }>,
+  examples: item.examples as string[],
+  synonyms: item.synonyms as string[],
+  wordForms: item.wordForms as string[],
+  topics: item.topics as string[],
+  createdAt: item.createdAt.toISOString(),
+  updatedAt: item.updatedAt.toISOString(),
+}));
+---
+
+<Layout title="Manage Vocabulary">
+  <AdminLayout client:load>
+    <VocabularyManagement
+      client:load
+      initialData={vocabularyData}
+      initialPage={page}
+      totalPages={totalPages}
+      total={total}
+      initialSearch={search}
+    />
+  </AdminLayout>
+</Layout>

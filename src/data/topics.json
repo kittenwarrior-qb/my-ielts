@@ -1,0 +1,13 @@
+[
+  { "id": "1", "name": "Environment", "slug": "environment", "description": "Topics related to nature, climate, and environmental issues" },
+  { "id": "2", "name": "Education", "slug": "education", "description": "Topics related to learning, schools, and academic subjects" },
+  { "id": "3", "name": "Health", "slug": "health", "description": "Topics related to physical and mental well-being" },
+  { "id": "4", "name": "Technology", "slug": "technology", "description": "Topics related to computers, internet, and innovation" },
+  { "id": "5", "name": "Business", "slug": "business", "description": "Topics related to commerce, economy, and work" },
+  { "id": "6", "name": "Society", "slug": "society", "description": "Topics related to culture, community, and social issues" },
+  { "id": "7", "name": "Travel", "slug": "travel", "description": "Topics related to tourism, transportation, and places" },
+  { "id": "8", "name": "Food", "slug": "food", "description": "Topics related to cuisine, nutrition, and cooking" },
+  { "id": "9", "name": "Sports", "slug": "sports", "description": "Topics related to athletics, fitness, and games" },
+  { "id": "10", "name": "Arts", "slug": "arts", "description": "Topics related to music, painting, and creative expression" },
+  { "id": "11", "name": "General", "slug": "general", "description": "General vocabulary for everyday use" }
+]

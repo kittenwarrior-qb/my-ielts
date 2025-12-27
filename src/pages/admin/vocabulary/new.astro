@@ -1,0 +1,33 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import AdminLayout from '../../../components/admin/AdminLayout';
+import VocabularyForm from '../../../components/admin/VocabularyForm';
+import { requireAuth } from '../../../lib/auth';
+import topicsData from '../../../data/topics.json';
+
+// Check authentication
+if (!requireAuth(Astro.cookies)) {
+  return Astro.redirect('/admin');
+}
+---
+
+<Layout title="Add New Vocabulary">
+  <AdminLayout client:load>
+    <div class="max-w-4xl">
+      <div class="mb-6">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+          Add New Vocabulary
+        </h1>
+        <p class="text-gray-600 dark:text-gray-400">
+          Fetch word data from dictionary or enter manually
+        </p>
+      </div>
+
+      <VocabularyForm
+        client:load
+        topics={topicsData}
+        mode="create"
+      />
+    </div>
+  </AdminLayout>
+</Layout>

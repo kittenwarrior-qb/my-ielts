@@ -1,0 +1,104 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header';
+import Footer from '../../components/Footer';
+import { idiomsRepo } from '../../lib/repositories/idioms';
+import { Badge, Card } from '../../components/ui';
+
+// Get query params
+const url = new URL(Astro.request.url);
+const page = parseInt(url.searchParams.get('page') || '1');
+const search = url.searchParams.get('search') || undefined;
+
+// Fetch idioms
+const { items, total, totalPages } = await idiomsRepo.getPaginated(page, 20, { search });
+
+// Serialize data
+const idiomsData = items.map(item => ({
+  ...item,
+  examples: item.examples as string[],
+  relatedWords: item.relatedWords as string[],
+  topics: item.topics as string[],
+  createdAt: item.createdAt.toISOString(),
+  updatedAt: item.updatedAt.toISOString(),
+}));
+---
+
+<Layout title="Idioms">
+  <Header client:load />
+  <main class="flex-1">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Page Header */}
+      <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+          IELTS Idioms
+        </h1>
+        <p class="text-gray-600 dark:text-gray-400">
+          {total} common idioms for IELTS Speaking & Writing
+        </p>
+      </div>
+
+      {/* Search */}
+      <form method="get" class="mb-6">
+        <div class="flex gap-2">
+          <input
+            type="text"
+            name="search"
+            value={search || ''}
+            placeholder="Search idioms..."
+            class="input flex-1"
+          />
+          <button type="submit" class="btn btn-primary">
+            Search
+          </button>
+          {search && (
+            <a href="/idioms" class="btn btn-secondary">
+              Clear
+            </a>
+          )}
+        </div>
+      </form>
+
+      {/* Idioms Grid */}
+      {idiomsData.length > 0 ? (
+        <div class="grid md:grid-cols-2 gap-6">
+          {idiomsData.map((idiom) => (
+            <div class="card hover:shadow-md transition-shadow">
+              <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                {idiom.idiom}
+              </h3>
+              <p class="text-gray-700 dark:text-gray-300 mb-4">
+                {idiom.meaning}
+              </p>
+              
+              {/* Example */}
+              {idiom.examples.length > 0 && (
+                <div class="mb-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                  <p class="text-sm text-gray-600 dark:text-gray-400 italic">
+                    "{idiom.examples[0]}"
+                  </p>
+                </div>
+              )}
+
+              {/* Topics */}
+              <div class="flex flex-wrap gap-2">
+                {idiom.topics.map((topic) => (
+                  <Badge variant="default" size="sm">
+                    {topic}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div class="text-center py-12">
+          <p class="text-gray-500 dark:text-gray-400 text-lg">
+            No idioms found
+          </p>
+        </div>
+      )}
+    </div>
+  </main>
+  <Footer />
+</Layout>

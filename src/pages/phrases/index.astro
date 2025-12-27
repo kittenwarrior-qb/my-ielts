@@ -1,0 +1,150 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header';
+import Footer from '../../components/Footer';
+import { phrasesRepo } from '../../lib/repositories/phrases';
+import { Badge } from '../../components/ui';
+
+// Get query params
+const url = new URL(Astro.request.url);
+const page = parseInt(url.searchParams.get('page') || '1');
+const category = url.searchParams.get('category') || undefined;
+const search = url.searchParams.get('search') || undefined;
+
+// Fetch phrases
+const { items, total, totalPages } = await phrasesRepo.getPaginated(page, 20, { category, search });
+
+// Serialize data
+const phrasesData = items.map(item => ({
+  ...item,
+  examples: item.examples as string[],
+  topics: item.topics as string[],
+  createdAt: item.createdAt.toISOString(),
+  updatedAt: item.updatedAt.toISOString(),
+}));
+---
+
+<Layout title="Phrases">
+  <Header client:load />
+  <main class="flex-1">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Page Header */}
+      <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+          IELTS Phrases
+        </h1>
+        <p class="text-gray-600 dark:text-gray-400">
+          {total} useful phrases for IELTS
+        </p>
+      </div>
+
+      {/* Filters */}
+      <div class="flex flex-wrap gap-4 mb-6">
+        {/* Category Filter */}
+        <div class="flex gap-2">
+          <a
+            href="/phrases"
+            class={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              !category
+                ? 'bg-primary-600 text-white dark:bg-primary-500'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+            }`}
+          >
+            All
+          </a>
+          <a
+            href="/phrases?category=speaking"
+            class={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              category === 'speaking'
+                ? 'bg-primary-600 text-white dark:bg-primary-500'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+            }`}
+          >
+            Speaking
+          </a>
+          <a
+            href="/phrases?category=writing"
+            class={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              category === 'writing'
+                ? 'bg-primary-600 text-white dark:bg-primary-500'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+            }`}
+          >
+            Writing
+          </a>
+          <a
+            href="/phrases?category=general"
+            class={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              category === 'general'
+                ? 'bg-primary-600 text-white dark:bg-primary-500'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+            }`}
+          >
+            General
+          </a>
+        </div>
+
+        {/* Search */}
+        <form method="get" class="flex-1 flex gap-2">
+          {category && <input type="hidden" name="category" value={category} />}
+          <input
+            type="text"
+            name="search"
+            value={search || ''}
+            placeholder="Search phrases..."
+            class="input flex-1"
+          />
+          <button type="submit" class="btn btn-primary">
+            Search
+          </button>
+        </form>
+      </div>
+
+      {/* Phrases Grid */}
+      {phrasesData.length > 0 ? (
+        <div class="grid md:grid-cols-2 gap-6">
+          {phrasesData.map((phrase) => (
+            <div class="card hover:shadow-md transition-shadow">
+              <div class="flex items-start justify-between mb-2">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100">
+                  {phrase.phrase}
+                </h3>
+                <Badge variant="primary" size="sm">
+                  {phrase.category}
+                </Badge>
+              </div>
+              <p class="text-gray-700 dark:text-gray-300 mb-4">
+                {phrase.meaning}
+              </p>
+              
+              {/* Example */}
+              {phrase.examples.length > 0 && (
+                <div class="mb-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                  <p class="text-sm text-gray-600 dark:text-gray-400 italic">
+                    "{phrase.examples[0]}"
+                  </p>
+                </div>
+              )}
+
+              {/* Topics */}
+              <div class="flex flex-wrap gap-2">
+                {phrase.topics.map((topic) => (
+                  <Badge variant="default" size="sm">
+                    {topic}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div class="text-center py-12">
+          <p class="text-gray-500 dark:text-gray-400 text-lg">
+            No phrases found
+          </p>
+        </div>
+      )}
+    </div>
+  </main>
+  <Footer />
+</Layout>

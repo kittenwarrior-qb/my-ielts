@@ -1,0 +1,28 @@
+[
+  {
+    "id": "1",
+    "idiom": "a piece of cake",
+    "meaning": "Something that is very easy to do",
+    "examples": [
+      "The exam was a piece of cake - I finished it in 30 minutes.",
+      "Don't worry about the presentation, it'll be a piece of cake."
+    ],
+    "relatedWords": ["easy", "simple", "effortless"],
+    "topics": ["general", "speaking"],
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2024-01-01T00:00:00Z"
+  },
+  {
+    "id": "2",
+    "idiom": "break the ice",
+    "meaning": "To do or say something to relieve tension or get conversation going in a social situation",
+    "examples": [
+      "He told a joke to break the ice at the meeting.",
+      "Playing a game is a good way to break the ice at parties."
+    ],
+    "relatedWords": ["socialize", "introduce", "conversation"],
+    "topics": ["social", "speaking"],
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2024-01-01T00:00:00Z"
+  }
+]

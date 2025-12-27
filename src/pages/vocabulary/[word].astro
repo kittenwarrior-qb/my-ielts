@@ -1,0 +1,71 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header';
+import Footer from '../../components/Footer';
+import VocabularyDetail from '../../components/vocabulary/VocabularyDetail';
+import { vocabularyRepo } from '../../lib/repositories/vocabulary';
+
+const { word } = Astro.params;
+
+if (!word) {
+  return Astro.redirect('/vocabulary');
+}
+
+// Fetch vocabulary data
+const vocabulary = await vocabularyRepo.getByWord(word);
+
+if (!vocabulary) {
+  return Astro.redirect('/vocabulary');
+}
+
+// Get related vocabulary (same topics)
+const topics = vocabulary.topics as string[];
+const relatedVocab = await vocabularyRepo.getAll({
+  topic: topics[0],
+});
+
+// Filter out current word and limit to 5
+const related = relatedVocab
+  .filter(v => v.word !== vocabulary.word)
+  .slice(0, 5)
+  .map(item => ({
+    ...item,
+    audioUrl: item.audioUrl || undefined,
+    userAudioUrl: item.userAudioUrl || undefined,
+    types: item.types as Array<{ type: string; meanings: string[] }>,
+    examples: item.examples as string[],
+    synonyms: item.synonyms as string[],
+    wordForms: item.wordForms as string[],
+    topics: item.topics as string[],
+    createdAt: item.createdAt.toISOString(),
+    updatedAt: item.updatedAt.toISOString(),
+  }));
+
+// Serialize data for client
+const vocabularyData = {
+  ...vocabulary,
+  audioUrl: vocabulary.audioUrl || undefined,
+  userAudioUrl: vocabulary.userAudioUrl || undefined,
+  types: vocabulary.types as Array<{ type: string; meanings: string[] }>,
+  examples: vocabulary.examples as string[],
+  synonyms: vocabulary.synonyms as string[],
+  wordForms: vocabulary.wordForms as string[],
+  topics: vocabulary.topics as string[],
+  createdAt: vocabulary.createdAt.toISOString(),
+  updatedAt: vocabulary.updatedAt.toISOString(),
+};
+---
+
+<Layout title={vocabulary.word} description={`Learn the word "${vocabulary.word}" - ${vocabulary.phonetic}`}>
+  <Header client:load />
+  <main class="flex-1">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <VocabularyDetail
+        client:load
+        vocabulary={vocabularyData}
+        relatedVocabulary={related}
+      />
+    </div>
+  </main>
+  <Footer />
+</Layout>

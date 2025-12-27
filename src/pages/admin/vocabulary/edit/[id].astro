@@ -1,0 +1,62 @@
+---
+import Layout from '../../../../layouts/Layout.astro';
+import AdminLayout from '../../../../components/admin/AdminLayout';
+import VocabularyForm from '../../../../components/admin/VocabularyForm';
+import { requireAuth } from '../../../../lib/auth';
+import { vocabularyRepo } from '../../../../lib/repositories/vocabulary';
+import topicsData from '../../../../data/topics.json';
+
+// Check authentication
+if (!requireAuth(Astro.cookies)) {
+  return Astro.redirect('/admin');
+}
+
+const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect('/admin/vocabulary');
+}
+
+// Fetch vocabulary
+const vocabulary = await vocabularyRepo.getById(id);
+
+if (!vocabulary) {
+  return Astro.redirect('/admin/vocabulary');
+}
+
+// Serialize data
+const vocabularyData = {
+  ...vocabulary,
+  audioUrl: vocabulary.audioUrl || undefined,
+  userAudioUrl: vocabulary.userAudioUrl || undefined,
+  types: vocabulary.types as Array<{ type: string; meanings: string[] }>,
+  examples: vocabulary.examples as string[],
+  synonyms: vocabulary.synonyms as string[],
+  wordForms: vocabulary.wordForms as string[],
+  topics: vocabulary.topics as string[],
+  createdAt: vocabulary.createdAt.toISOString(),
+  updatedAt: vocabulary.updatedAt.toISOString(),
+};
+---
+
+<Layout title={`Edit ${vocabulary.word}`}>
+  <AdminLayout client:load>
+    <div class="max-w-4xl">
+      <div class="mb-6">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+          Edit Vocabulary: {vocabulary.word}
+        </h1>
+        <p class="text-gray-600 dark:text-gray-400">
+          Update vocabulary information
+        </p>
+      </div>
+
+      <VocabularyForm
+        client:load
+        topics={topicsData}
+        mode="edit"
+        initialData={vocabularyData}
+      />
+    </div>
+  </AdminLayout>
+</Layout>

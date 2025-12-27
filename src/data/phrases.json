@@ -1,0 +1,28 @@
+[
+  {
+    "id": "1",
+    "phrase": "In my opinion",
+    "meaning": "Used to express a personal view or belief",
+    "examples": [
+      "In my opinion, education is the key to success.",
+      "In my opinion, the government should invest more in healthcare."
+    ],
+    "category": "speaking",
+    "topics": ["opinion", "speaking"],
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2024-01-01T00:00:00Z"
+  },
+  {
+    "id": "2",
+    "phrase": "On the other hand",
+    "meaning": "Used to introduce a contrasting point of view",
+    "examples": [
+      "Working from home saves time. On the other hand, it can be isolating.",
+      "The city offers many opportunities. On the other hand, the cost of living is high."
+    ],
+    "category": "writing",
+    "topics": ["contrast", "writing"],
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2024-01-01T00:00:00Z"
+  }
+]
