@@ -1,6 +1,8 @@
 # build output
 dist/
 kiro/
+.kiro/
+.vscode/
 # generated types
 .astro/
 
