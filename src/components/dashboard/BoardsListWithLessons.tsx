@@ -51,23 +51,62 @@ export default function BoardsListWithLessons({ type }: BoardsListWithLessonsPro
     });
   };
 
+  // Grammar has lessons (dropdown), vocabulary and idioms don't
+  const hasLessons = type === 'grammar';
+
   return (
     <div className="space-y-1">
       {boards.map(board => (
-        <BoardItem
-          key={board.id}
-          board={board}
-          type={type}
-          isExpanded={expandedBoards.has(board.id)}
-          onToggle={() => toggleBoard(board.id)}
-          currentPath={location.pathname}
-        />
+        hasLessons ? (
+          <GrammarBoardItem
+            key={board.id}
+            board={board}
+            type={type}
+            isExpanded={expandedBoards.has(board.id)}
+            onToggle={() => toggleBoard(board.id)}
+            currentPath={location.pathname}
+          />
+        ) : (
+          <SimpleBoardItem
+            key={board.id}
+            board={board}
+            type={type}
+            currentPath={location.pathname}
+          />
+        )
       ))}
     </div>
   );
 }
 
-interface BoardItemProps {
+// Simple board item for vocabulary and idioms (no dropdown)
+interface SimpleBoardItemProps {
+  board: Board;
+  type: string;
+  currentPath: string;
+}
+
+function SimpleBoardItem({ board, type, currentPath }: SimpleBoardItemProps) {
+  const boardPath = `/dashboard/${type}/${board.id}`;
+  const isBoardActive = currentPath === boardPath;
+
+  return (
+    <Link
+      to={boardPath}
+      className={`block px-3 py-2 text-sm font-medium rounded truncate ${
+        isBoardActive 
+          ? 'bg-gray-100 shadow-sm' 
+          : 'hover:bg-gray-50'
+      }`}
+      title={board.name}
+    >
+      {board.name}
+    </Link>
+  );
+}
+
+// Grammar board item with lessons dropdown
+interface GrammarBoardItemProps {
   board: Board;
   type: string;
   isExpanded: boolean;
@@ -75,7 +114,7 @@ interface BoardItemProps {
   currentPath: string;
 }
 
-function BoardItem({ board, type, isExpanded, onToggle, currentPath }: BoardItemProps) {
+function GrammarBoardItem({ board, type, isExpanded, onToggle, currentPath }: GrammarBoardItemProps) {
   // Fetch lessons only when expanded
   const { data: lessons = [] } = useQuery<Lesson[]>({
     queryKey: ['lessons', board.id],

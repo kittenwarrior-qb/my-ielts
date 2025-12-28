@@ -183,15 +183,15 @@ export default function GrammarBoardDetail() {
         {/* Lessons Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {lessons.map((lesson) => (
-            <div key={lesson.id} className="relative group">
+            <div key={lesson.id} className="relative group h-full">
               <Link
                 to={`/dashboard/grammar/lesson/${lesson.id}`}
-                className="block border border-gray-200 bg-white p-6 hover:bg-gray-50 transition-colors"
+                className="border border-gray-200 bg-white p-6 hover:bg-gray-50 transition-colors h-full min-h-[140px] flex flex-col"
               >
                 <div className="flex items-start justify-between mb-2">
-                  <h3 className="font-semibold text-black flex-1">{lesson.title}</h3>
+                  <h3 className="font-semibold text-black flex-1 line-clamp-2">{lesson.title}</h3>
                   
-                  <div className="relative" ref={menuOpenId === lesson.id ? menuRef : null}>
+                  <div className="relative flex-shrink-0 ml-2" ref={menuOpenId === lesson.id ? menuRef : null}>
                     <button
                       onClick={(e) => {
                         e.preventDefault();
@@ -232,11 +232,11 @@ export default function GrammarBoardDetail() {
                   </div>
                 </div>
 
-                <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                <p className="text-sm text-gray-600 mb-3 line-clamp-2 flex-1">
                   {lesson.description || 'Không có mô tả'}
                 </p>
 
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-gray-500 mt-auto">
                   {(lesson.itemIds || []).length} ngữ pháp
                 </div>
               </Link>

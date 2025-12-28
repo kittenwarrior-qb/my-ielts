@@ -54,15 +54,15 @@ export default function BoardCard({ board, linkTo, onEdit, onDelete }: BoardCard
   };
 
   return (
-    <div className="relative group">
+    <div className="relative group h-full">
       <Link
         to={linkTo}
-        className="block border border-gray-200 bg-white p-6 hover:bg-gray-50 transition-colors"
+        className="border border-gray-200 bg-white p-6 hover:bg-gray-50 transition-colors h-full min-h-[140px] flex flex-col"
       >
         <div className="flex items-start justify-between mb-2">
-          <h3 className="font-semibold text-black flex-1">{board.name}</h3>
+          <h3 className="font-semibold text-black flex-1 line-clamp-2">{board.name}</h3>
           
-          <div className="relative" ref={menuRef}>
+          <div className="relative flex-shrink-0 ml-2" ref={menuRef}>
             <button
               onClick={(e) => {
                 e.preventDefault();
@@ -95,11 +95,11 @@ export default function BoardCard({ board, linkTo, onEdit, onDelete }: BoardCard
           </div>
         </div>
 
-        <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+        <p className="text-sm text-gray-600 mb-3 line-clamp-2 flex-1">
           {board.description || 'Không có mô tả'}
         </p>
 
-        <div className="text-xs text-gray-500">
+        <div className="text-xs text-gray-500 mt-auto">
           {itemCount} items
         </div>
       </Link>

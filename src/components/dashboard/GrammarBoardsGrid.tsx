@@ -228,15 +228,15 @@ function BoardCard({ board, onEdit, onDelete, menuOpenId, setMenuOpenId, menuRef
   });
 
   return (
-    <div className="relative group">
+    <div className="relative group h-full">
       <Link
         to={`/dashboard/grammar/board/${board.id}`}
-        className="block border border-gray-200 bg-white p-6 hover:bg-gray-50 transition-colors"
+        className="border border-gray-200 bg-white p-6 hover:bg-gray-50 transition-colors h-full min-h-[140px] flex flex-col"
       >
         <div className="flex items-start justify-between mb-2">
-          <h3 className="font-semibold text-black flex-1">{board.name}</h3>
+          <h3 className="font-semibold text-black flex-1 line-clamp-2">{board.name}</h3>
           
-          <div className="relative" ref={menuOpenId === board.id ? menuRef : null}>
+          <div className="relative flex-shrink-0 ml-2" ref={menuOpenId === board.id ? menuRef : null}>
             <button
               onClick={(e) => {
                 e.preventDefault();
@@ -277,11 +277,11 @@ function BoardCard({ board, onEdit, onDelete, menuOpenId, setMenuOpenId, menuRef
           </div>
         </div>
 
-        <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+        <p className="text-sm text-gray-600 mb-3 line-clamp-2 flex-1">
           {board.description || 'Không có mô tả'}
         </p>
 
-        <div className="text-xs text-gray-500">
+        <div className="text-xs text-gray-500 mt-auto">
           {lessons.length} lessons
         </div>
       </Link>

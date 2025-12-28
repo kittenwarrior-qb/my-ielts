@@ -1,7 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import type { Board, Vocabulary } from '@/lib/db/schema';
-import { Plus, MoreVertical, Edit, Trash2, Volume2 } from 'lucide-react';
+import { Plus, MoreVertical, Edit, Trash2, Volume2, ArrowLeft } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import VocabularyDetailModal from './VocabularyDetailModal';
 import AddVocabularyForm from '../admin/AddVocabularyForm';
 import EditVocabularyForm from '../admin/EditVocabularyForm';
@@ -191,33 +192,43 @@ export default function VocabularyBoardDetail({ boardId }: VocabularyBoardDetail
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <div className="flex items-center gap-2 text-base text-gray-600 mb-3">
-            <a href="/dashboard/vocabulary" className="hover:text-black">Vocabulary</a>
-            <span>/</span>
-            <span className="truncate font-medium">{board.name}</span>
-          </div>
-          <h1 className="text-2xl font-bold mb-3">{board.name}</h1>
-          <p className="text-lg text-gray-600">{board.description || 'Không có mô tả'}</p>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex gap-2 mb-4 sm:mb-6 overflow-x-auto pb-2">
-          <button 
-            onClick={() => setShowAddForm(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-white font-bold transition-all duration-150 whitespace-nowrap active:translate-y-[4px]"
-            style={{ 
-              backgroundColor: '#FF6B6B', 
-              fontSize: '1rem',
-              boxShadow: '0 4px 0 0 #CC3333'
-            }}
-            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#FA5252'}
-            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#FF6B6B'}
-            onMouseDown={(e) => e.currentTarget.style.boxShadow = '0 0 0 0 #CC3333'}
-            onMouseUp={(e) => e.currentTarget.style.boxShadow = '0 4px 0 0 #CC3333'}
+          <Link
+            to="/dashboard/vocabulary"
+            className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 mb-4"
           >
-            <Plus className="w-5 h-5" />
-            Thêm Vocabulary
-          </button>
+            <ArrowLeft className="w-4 h-4" />
+            Back to Vocabulary Boards
+          </Link>
+          
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">{board.name}</h1>
+              {board.description && (
+                <p className="text-gray-600">{board.description}</p>
+              )}
+            </div>
+
+            <button
+              onClick={() => setShowAddForm(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-white font-bold transition-all duration-150 active:translate-y-[4px]"
+              style={{ backgroundColor: '#FF6B6B', boxShadow: '0 4px 0 0 #CC3333' }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.backgroundColor = '#FA5252';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.backgroundColor = '#FF6B6B';
+              }}
+              onMouseDown={(e) => {
+                e.currentTarget.style.boxShadow = '0 0 0 0 #CC3333';
+              }}
+              onMouseUp={(e) => {
+                e.currentTarget.style.boxShadow = '0 4px 0 0 #CC3333';
+              }}
+            >
+              <Plus className="w-5 h-5" />
+              Thêm Vocabulary
+            </button>
+          </div>
         </div>
 
         {/* Desktop Table / Mobile Cards */}
