@@ -64,6 +64,6 @@ export function clearSession(cookies: AstroCookies): void {
 /**
  * Require authentication (use in Astro pages)
  */
-export function requireAuth(cookies: AstroCookies, redirectTo: string = '/admin'): boolean {
+export function requireAuth(cookies: AstroCookies, redirectTo: string = '/dashboard'): boolean {
   return isAuthenticated(cookies);
 }

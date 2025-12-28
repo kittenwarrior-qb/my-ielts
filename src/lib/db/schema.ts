@@ -6,6 +6,20 @@ export const wordTypeEnum = pgEnum('word_type', ['noun', 'verb', 'adjective', 'a
 export const skillEnum = pgEnum('skill', ['listening', 'reading', 'speaking', 'writing']);
 export const categoryEnum = pgEnum('category', ['speaking', 'writing', 'general']);
 export const expressionTypeEnum = pgEnum('expression_type', ['idiom', 'phrase']);
+export const boardTypeEnum = pgEnum('board_type', ['grammar', 'vocabulary', 'idioms']);
+
+// Boards Table (like Trello boards)
+export const boards = pgTable('boards', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  type: boardTypeEnum('type').notNull(), // grammar, vocabulary, or idioms
+  description: text('description'),
+  color: text('color'), // Optional color for the board
+  icon: text('icon'), // Optional emoji icon
+  itemIds: jsonb('item_ids').notNull(), // Array of vocabulary/expression/grammar IDs
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
 
 // Topics Table
 export const topics = pgTable('topics', {
@@ -106,6 +120,9 @@ export const skillContent = pgTable('skill_content', {
 });
 
 // Types for TypeScript
+export type Board = typeof boards.$inferSelect;
+export type NewBoard = typeof boards.$inferInsert;
+
 export type Topic = typeof topics.$inferSelect;
 export type NewTopic = typeof topics.$inferInsert;
 

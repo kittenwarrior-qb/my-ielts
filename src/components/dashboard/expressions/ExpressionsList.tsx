@@ -1,14 +1,14 @@
 import { useState, useMemo } from 'react';
-import type { Vocabulary } from '@/lib/db/schema';
+import type { Expression } from '@/lib/db/schema';
 import Toolbar from '../Toolbar';
 import ListView from '../ListView';
-import VocabularyFormModal from './VocabularyFormModal';
+import ExpressionsFormModal from './ExpressionsFormModal';
 import Badge from '@/components/ui/badge';
 import { ToastContainer } from '@/components/ui/Toast';
 import type { ToastType } from '@/components/ui/Toast';
 
-interface VocabularyListProps {
-  vocabulary: Vocabulary[];
+interface ExpressionsListProps {
+  expressions: Expression[];
 }
 
 interface Toast {
@@ -17,13 +17,13 @@ interface Toast {
   message: string;
 }
 
-export default function VocabularyList({ vocabulary: initialVocabulary }: VocabularyListProps) {
-  const [vocabulary, setVocabulary] = useState<Vocabulary[]>(initialVocabulary);
+export default function ExpressionsList({ expressions: initialExpressions }: ExpressionsListProps) {
+  const [expressions, setExpressions] = useState<Expression[]>(initialExpressions);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedType, setSelectedType] = useState<string>('all');
   const [selectedTopic, setSelectedTopic] = useState<string>('all');
-  const [selectedLevel, setSelectedLevel] = useState<string>('all');
   const [showAddModal, setShowAddModal] = useState(false);
-  const [editingItem, setEditingItem] = useState<Vocabulary | null>(null);
+  const [editingItem, setEditingItem] = useState<Expression | null>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   const showToast = (type: ToastType, message: string) => {
@@ -35,64 +35,60 @@ export default function VocabularyList({ vocabulary: initialVocabulary }: Vocabu
     setToasts(prev => prev.filter(t => t.id !== id));
   };
 
-  // Get unique topics and levels
+  // Get unique topics
   const topics = useMemo(() => {
-    const allTopics = vocabulary.flatMap(v => {
-      const topics = v.topics;
+    const allTopics = expressions.flatMap(e => {
+      const topics = e.topics;
       return Array.isArray(topics) ? topics : [];
     });
     return ['all', ...Array.from(new Set(allTopics))];
-  }, [vocabulary]);
+  }, [expressions]);
 
-  const levels = ['all', 'beginner', 'intermediate', 'advanced'];
-
-  // Filter vocabulary
-  const filteredVocabulary = useMemo(() => {
-    return vocabulary.filter(item => {
+  // Filter expressions
+  const filteredExpressions = useMemo(() => {
+    return expressions.filter(item => {
       const matchesSearch = searchTerm === '' || 
-        item.word.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (typeof item.types === 'object' && JSON.stringify(item.types).toLowerCase().includes(searchTerm.toLowerCase()));
+        item.expression.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.meaning.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesType = selectedType === 'all' || item.type === selectedType;
       
       const itemTopics = Array.isArray(item.topics) ? item.topics : [];
       const matchesTopic = selectedTopic === 'all' || itemTopics.includes(selectedTopic);
-      
-      const matchesLevel = selectedLevel === 'all' || item.level === selectedLevel;
 
-      return matchesSearch && matchesTopic && matchesLevel;
+      return matchesSearch && matchesType && matchesTopic;
     });
-  }, [vocabulary, searchTerm, selectedTopic, selectedLevel]);
+  }, [expressions, searchTerm, selectedType, selectedTopic]);
 
   const columns = [
     {
-      key: 'word',
-      label: 'TERM',
-      width: '20%',
-      render: (item: Vocabulary) => (
+      key: 'expression',
+      label: 'EXPRESSION',
+      width: '25%',
+      render: (item: Expression) => (
         <div>
-          <div className="font-semibold text-black">{item.word}</div>
-          <div className="text-sm text-gray-600">{item.phonetic}</div>
+          <div className="font-semibold text-black">{item.expression}</div>
+          <Badge variant="default" className="text-xs mt-1">
+            {item.type === 'idiom' ? 'Idiom' : 'Phrase'}
+          </Badge>
         </div>
       ),
     },
     {
       key: 'meaning',
       label: 'MEANING',
-      width: '25%',
-      render: (item: Vocabulary) => {
-        const types = item.types as any;
-        const firstMeaning = Array.isArray(types) && types[0]?.meanings?.[0];
-        return (
-          <div className="text-black truncate">
-            {firstMeaning || 'No meaning'}
-          </div>
-        );
-      },
+      width: '30%',
+      render: (item: Expression) => (
+        <div className="text-black truncate">
+          {item.meaning}
+        </div>
+      ),
     },
     {
       key: 'grammar',
       label: 'GRAMMAR',
       width: '20%',
-      render: (item: Vocabulary) => (
+      render: (item: Expression) => (
         <div className="text-sm text-gray-600 truncate">
           {item.grammar || '-'}
         </div>
@@ -101,8 +97,8 @@ export default function VocabularyList({ vocabulary: initialVocabulary }: Vocabu
     {
       key: 'topics',
       label: 'TOPICS',
-      width: '20%',
-      render: (item: Vocabulary) => {
+      width: '25%',
+      render: (item: Expression) => {
         const topics = Array.isArray(item.topics) ? item.topics : [];
         return (
           <div className="flex flex-wrap gap-1">
@@ -120,31 +116,24 @@ export default function VocabularyList({ vocabulary: initialVocabulary }: Vocabu
         );
       },
     },
-    {
-      key: 'band',
-      label: 'BAND',
-      width: '15%',
-      render: (item: Vocabulary) => (
-        <Badge variant="primary">{item.band}</Badge>
-      ),
-    },
   ];
 
   const filters = [
+    {
+      label: 'Loại',
+      value: selectedType,
+      onChange: setSelectedType,
+      options: [
+        { label: 'Tất cả', value: 'all' },
+        { label: 'Idiom', value: 'idiom' },
+        { label: 'Phrase', value: 'phrase' },
+      ],
+    },
     {
       label: 'Chủ đề',
       value: selectedTopic,
       onChange: setSelectedTopic,
       options: topics.map(t => ({ label: t === 'all' ? 'Tất cả' : t, value: t })),
-    },
-    {
-      label: 'Cấp độ',
-      value: selectedLevel,
-      onChange: setSelectedLevel,
-      options: levels.map(l => ({ 
-        label: l === 'all' ? 'Tất cả' : l.charAt(0).toUpperCase() + l.slice(1), 
-        value: l 
-      })),
     },
   ];
 
@@ -153,27 +142,27 @@ export default function VocabularyList({ vocabulary: initialVocabulary }: Vocabu
     setShowAddModal(true);
   };
 
-  const handleEdit = (item: Vocabulary) => {
+  const handleEdit = (item: Expression) => {
     setEditingItem(item);
     setShowAddModal(true);
   };
 
-  const handleDelete = async (item: Vocabulary) => {
-    if (confirm(`Bạn có chắc muốn xóa từ "${item.word}"?`)) {
+  const handleDelete = async (item: Expression) => {
+    if (confirm(`Bạn có chắc muốn xóa "${item.expression}"?`)) {
       try {
-        const response = await fetch(`/api/vocabulary/${item.id}`, {
+        const response = await fetch(`/api/expressions/${item.id}`, {
           method: 'DELETE',
         });
         
         if (response.ok) {
-          setVocabulary(prev => prev.filter(v => v.id !== item.id));
-          showToast('success', `Đã xóa từ "${item.word}" thành công`);
+          setExpressions(prev => prev.filter(e => e.id !== item.id));
+          showToast('success', `Đã xóa "${item.expression}" thành công`);
         } else {
-          showToast('error', 'Không thể xóa từ vựng');
+          showToast('error', 'Không thể xóa expression');
         }
       } catch (error) {
         console.error('Delete failed:', error);
-        showToast('error', 'Có lỗi xảy ra khi xóa từ vựng');
+        showToast('error', 'Có lỗi xảy ra khi xóa expression');
       }
     }
   };
@@ -181,8 +170,8 @@ export default function VocabularyList({ vocabulary: initialVocabulary }: Vocabu
   const handleSave = async (data: any) => {
     try {
       const url = editingItem 
-        ? `/api/vocabulary/${editingItem.id}` 
-        : '/api/vocabulary';
+        ? `/api/expressions/${editingItem.id}` 
+        : '/api/expressions';
       
       const method = editingItem ? 'PUT' : 'POST';
       
@@ -196,26 +185,30 @@ export default function VocabularyList({ vocabulary: initialVocabulary }: Vocabu
         const savedItem = await response.json();
         
         if (editingItem) {
-          setVocabulary(prev => prev.map(v => v.id === editingItem.id ? savedItem : v));
-          showToast('success', 'Đã cập nhật từ vựng thành công');
+          setExpressions(prev => prev.map(e => e.id === editingItem.id ? savedItem : e));
+          showToast('success', 'Đã cập nhật expression thành công');
         } else {
-          setVocabulary(prev => [...prev, savedItem]);
-          showToast('success', 'Đã thêm từ vựng mới thành công');
+          setExpressions(prev => [...prev, savedItem]);
+          showToast('success', 'Đã thêm expression mới thành công');
         }
         
         setShowAddModal(false);
         setEditingItem(null);
       } else {
-        showToast('error', 'Không thể lưu từ vựng');
+        showToast('error', 'Không thể lưu expression');
       }
     } catch (error) {
       console.error('Save failed:', error);
-      showToast('error', 'Có lỗi xảy ra khi lưu từ vựng');
+      showToast('error', 'Có lỗi xảy ra khi lưu expression');
     }
   };
 
-  const handleItemClick = (item: Vocabulary) => {
-    window.location.href = `/vocabulary/${item.word}`;
+  const handleItemClick = (item: Expression) => {
+    if (item.type === 'idiom') {
+      window.location.href = `/idioms/${item.expression}`;
+    } else {
+      window.location.href = `/phrases/${item.expression}`;
+    }
   };
 
   return (
@@ -223,8 +216,8 @@ export default function VocabularyList({ vocabulary: initialVocabulary }: Vocabu
       <ToastContainer toasts={toasts} onRemove={removeToast} />
       
       <Toolbar
-        title="Từ vựng"
-        itemCount={filteredVocabulary.length}
+        title="Expressions"
+        itemCount={filteredExpressions.length}
         onAdd={handleAdd}
         searchValue={searchTerm}
         onSearchChange={setSearchTerm}
@@ -232,14 +225,14 @@ export default function VocabularyList({ vocabulary: initialVocabulary }: Vocabu
       />
 
       <ListView
-        items={filteredVocabulary}
+        items={filteredExpressions}
         columns={columns}
         onItemClick={handleItemClick}
         onEdit={handleEdit}
         onDelete={handleDelete}
       />
 
-      <VocabularyFormModal
+      <ExpressionsFormModal
         isOpen={showAddModal}
         onClose={() => {
           setShowAddModal(false);

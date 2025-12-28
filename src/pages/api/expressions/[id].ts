@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { vocabularyRepo } from '../../../lib/repositories/vocabulary';
+import { expressionsRepo } from '../../../lib/repositories/expressions';
 import { isAuthenticated } from '../../../lib/auth';
 
 export const PUT: APIRoute = async ({ params, request, cookies }) => {
@@ -23,7 +23,7 @@ export const PUT: APIRoute = async ({ params, request, cookies }) => {
   try {
     const data = await request.json();
     
-    const updated = await vocabularyRepo.update(id, data);
+    const updated = await expressionsRepo.update(id, data);
 
     if (updated) {
       return new Response(
@@ -32,14 +32,14 @@ export const PUT: APIRoute = async ({ params, request, cookies }) => {
       );
     } else {
       return new Response(
-        JSON.stringify({ success: false, error: 'Vocabulary not found' }),
+        JSON.stringify({ success: false, error: 'Expression not found' }),
         { status: 404, headers: { 'Content-Type': 'application/json' } }
       );
     }
   } catch (error) {
-    console.error('Update vocabulary error:', error);
+    console.error('Update expression error:', error);
     return new Response(
-      JSON.stringify({ success: false, error: 'Failed to update vocabulary' }),
+      JSON.stringify({ success: false, error: 'Failed to update expression' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
@@ -64,23 +64,23 @@ export const DELETE: APIRoute = async ({ params, cookies }) => {
   }
 
   try {
-    const deleted = await vocabularyRepo.delete(id);
+    const deleted = await expressionsRepo.delete(id);
 
     if (deleted) {
       return new Response(
-        JSON.stringify({ success: true, message: 'Vocabulary deleted successfully' }),
+        JSON.stringify({ success: true, message: 'Expression deleted successfully' }),
         { status: 200, headers: { 'Content-Type': 'application/json' } }
       );
     } else {
       return new Response(
-        JSON.stringify({ success: false, error: 'Vocabulary not found' }),
+        JSON.stringify({ success: false, error: 'Expression not found' }),
         { status: 404, headers: { 'Content-Type': 'application/json' } }
       );
     }
   } catch (error) {
-    console.error('Delete vocabulary error:', error);
+    console.error('Delete expression error:', error);
     return new Response(
-      JSON.stringify({ success: false, error: 'Failed to delete vocabulary' }),
+      JSON.stringify({ success: false, error: 'Failed to delete expression' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }

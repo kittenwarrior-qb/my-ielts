@@ -84,7 +84,7 @@ export default function Footer() {
 
         <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
           <p className="text-center text-gray-600 dark:text-gray-400 text-sm">
-            © {currentYear} my IELTS. All rights reserved.
+            © {currentYear} My IELTS. All rights reserved.
           </p>
         </div>
       </div>

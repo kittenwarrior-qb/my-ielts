@@ -44,8 +44,8 @@ export default function Toolbar({
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-2xl font-bold">{title}</h1>
-            <p className="text-sm text-muted-foreground mt-1">
+            <h1 className="text-2xl font-bold text-black">{title}</h1>
+            <p className="text-sm text-gray-600 mt-1">
               {itemCount} mục
             </p>
           </div>
@@ -72,7 +72,7 @@ export default function Toolbar({
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
               placeholder="Tìm kiếm..."
               value={searchValue}

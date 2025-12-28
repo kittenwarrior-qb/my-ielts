@@ -9,7 +9,6 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Edit, Trash2 } from 'lucide-react';
-import EmptyState from './EmptyState';
 
 interface Column<T> {
   key: keyof T | string;
@@ -41,15 +40,22 @@ export default function ListView<T extends { id: string }>({
     return (
       <Card>
         <div className="p-8 text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Đang tải...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black mx-auto"></div>
+          <p className="mt-4 text-gray-600">Đang tải...</p>
         </div>
       </Card>
     );
   }
 
   if (items.length === 0) {
-    return emptyState || <EmptyState type="vocabulary" onAdd={() => {}} />;
+    return emptyState || (
+      <Card>
+        <div className="p-8 text-center">
+          <div className="text-4xl mb-4">📭</div>
+          <p className="text-gray-600">Không có dữ liệu</p>
+        </div>
+      </Card>
+    );
   }
 
   return (
@@ -71,7 +77,7 @@ export default function ListView<T extends { id: string }>({
           {items.map((item) => (
             <TableRow
               key={item.id}
-              className="cursor-pointer hover:bg-muted/50"
+              className="cursor-pointer hover:bg-gray-50"
               onClick={() => onItemClick?.(item)}
             >
               {columns.map((column) => (
@@ -99,7 +105,7 @@ export default function ListView<T extends { id: string }>({
                         size="icon"
                         onClick={() => onDelete(item)}
                       >
-                        <Trash2 className="h-4 w-4 text-destructive" />
+                        <Trash2 className="h-4 w-4 text-red-600" />
                       </Button>
                     )}
                   </div>
