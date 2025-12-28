@@ -1,45 +1,61 @@
 # IELTS Learning Platform
 
-Ứng dụng học IELTS toàn diện với vocabulary, grammar, expressions và board system tương tự Trello - Astro + React + PostgreSQL.
-
-**Live Demo:** [Coming soon]
+Ứng dụng học IELTS toàn diện với vocabulary, grammar, expressions và board system - Astro + React + PostgreSQL.
 
 ## Mô tả bài toán
 
 Người học IELTS cần một nơi tập trung để:
 - Tra cứu từ vựng với phiên âm, ví dụ, synonyms
-- Học grammar patterns với explanations chi tiết
+- Học grammar patterns với explanations chi tiết và lessons
 - Lưu idioms/phrases theo chủ đề
-- Tổ chức learning materials vào boards (như Trello)
+- Tổ chức learning materials vào boards
 - Nghe phát âm từ vựng
 
 ```
 Input:  Từ vựng rời rạc, grammar rules khó nhớ
-Output: Hệ thống có cấu trúc với boards, topics, levels
+Output: Hệ thống có cấu trúc với boards, lessons, topics, levels
 ```
 
 ## Tính năng đã có
 
 ### Core Features
 - **Vocabulary Management**: Tra cứu từ, phiên âm, word types, examples, synonyms
+  - Thêm/sửa/xóa vocabulary với form đa dạng (manual, API tra từ điển, JSON import)
+  - Tổ chức vocabulary vào boards
+  - Audio support với play button
+  
 - **Grammar Patterns**: Structure, explanation, usage notes, examples
-- **Expressions**: Idioms & phrases với context, register, frequency
-- **Board System**: Tổ chức vocabulary/grammar/idioms vào boards (Trello-style)
-- **Audio Support**: Upload/play audio cho từ vựng
-- **Dictionary Integration**: Tra từ điển trực tiếp trong app
+  - Tổ chức grammar vào boards và lessons (2 cấp độ)
+  - Thêm/sửa/xóa grammar items
+  - Thêm/sửa/xóa lessons trong board
+  - Sidebar navigation với dropdown lessons
+  
+- **Expressions/Idioms**: Idioms & phrases với context, register, frequency
+  - Thêm/sửa/xóa expressions
+  - Tổ chức vào boards theo chủ đề
+  
+- **Board System**: 
+  - Tạo/sửa/xóa boards cho cả 3 loại (grammar, vocabulary, idioms)
+  - Grammar boards có lessons (2-level hierarchy)
+  - Vocabulary và Idioms boards chứa trực tiếp items
+  - Cascade delete: xóa board sẽ xóa tất cả lessons và items bên trong
 
 ### Advanced Features
 - **Level System**: Beginner, Intermediate, Advanced
-- **IELTS Band Scoring**: Từ vựng được gắn band score (6.5, 7.0, 7.5...)
-- **Topics & Categories**: Phân loại theo chủ đề (speaking, writing, general)
-- **External Links**: Liên kết tài liệu bên ngoài
+- **IELTS Band Scoring**: Từ vựng được gắn band score (6.0, 6.5, 7.0...)
+- **Topics & Categories**: Phân loại theo chủ đề
 - **Search & Filter**: Tìm kiếm nhanh với Fuse.js
-- **Admin Dashboard**: Quản lý content với authentication
+- **Admin Dashboard**: 
+  - Authentication với admin password
+  - Permission checks cho tất cả CRUD operations
+  - Error dialogs thân thiện
+  - Responsive design
 
 ### Data Management
 - **Bulk Import**: Import từ CSV, Excel, Word documents
-- **GitHub Sync**: Backup/sync data với GitHub
+- **Dictionary API Integration**: Tra từ điển tự động khi thêm vocabulary
 - **Seed Scripts**: Scripts để seed data nhanh
+- **Cleanup Scripts**: Script dọn dẹp orphaned data (`npm run db:clean`)
 
 ## Tech Stack
 
@@ -79,13 +95,15 @@ pnpm dev
 # → http://localhost:4321
 ```
 
-### Database Commands
+## Database Commands
 
 ```bash
 pnpm db:generate   # Generate migration files
 pnpm db:migrate    # Run migrations
 pnpm db:push       # Push schema changes
 pnpm db:studio     # Open Drizzle Studio GUI
+pnpm db:seed       # Seed initial data
+pnpm db:clean      # Clean orphaned data (lessons/items without boards)
 ```
 
 ## API Endpoints
@@ -95,64 +113,78 @@ pnpm db:studio     # Open Drizzle Studio GUI
 |--------|----------|-------|
 | POST | `/api/auth/login` | Admin login |
 | POST | `/api/auth/logout` | Logout |
-| GET | `/api/auth/me` | Get current user |
+| GET | `/api/auth/me` | Get current user info |
 
 ### Vocabulary
 | Method | Endpoint | Mô tả |
 |--------|----------|-------|
-| GET | `/api/vocabulary` | List vocabulary (paginated) |
+| GET | `/api/vocabulary` | List all vocabulary |
 | GET | `/api/vocabulary/:id` | Get vocabulary detail |
 | POST | `/api/vocabulary/create` | Create vocabulary (admin) |
-| GET | `/api/vocabulary/fetch` | Fetch from external API |
+| PUT | `/api/vocabulary/:id` | Update vocabulary (admin) |
+| DELETE | `/api/vocabulary/:id` | Delete vocabulary (admin) |
+| POST | `/api/vocabulary/fetch` | Fetch from dictionary API |
 
 ### Grammar
 | Method | Endpoint | Mô tả |
 |--------|----------|-------|
-| GET | `/api/grammar` | List grammar patterns |
+| GET | `/api/grammar` | List all grammar patterns |
 | GET | `/api/grammar/:id` | Get grammar detail |
 | POST | `/api/grammar/create` | Create grammar (admin) |
+| PUT | `/api/grammar/:id` | Update grammar (admin) |
+| DELETE | `/api/grammar/:id` | Delete grammar (admin) |
 | GET | `/api/grammar/by-ids` | Batch get by IDs |
 
 ### Expressions
 | Method | Endpoint | Mô tả |
 |--------|----------|-------|
-| GET | `/api/expressions` | List expressions |
+| GET | `/api/expressions` | List all expressions |
 | GET | `/api/expressions/:id` | Get expression detail |
 | POST | `/api/expressions/create` | Create expression (admin) |
+| PUT | `/api/expressions/:id` | Update expression (admin) |
+| DELETE | `/api/expressions/:id` | Delete expression (admin) |
+| GET | `/api/expressions/by-ids` | Batch get by IDs |
 
 ### Boards
 | Method | Endpoint | Mô tả |
 |--------|----------|-------|
-| GET | `/api/boards` | List all boards |
-| GET | `/api/boards/:id` | Get board with items |
+| GET | `/api/boards` | List boards (filter by type) |
+| GET | `/api/boards/:id` | Get board detail |
 | POST | `/api/boards` | Create board (admin) |
 | PUT | `/api/boards/:id` | Update board (admin) |
-| DELETE | `/api/boards/:id` | Delete board (admin) |
+| DELETE | `/api/boards/:id` | Delete board + cascade delete items (admin) |
+| POST | `/api/boards/:id/items` | Add item to board (admin) |
+| DELETE | `/api/boards/:id/items` | Remove item from board (admin) |
 
-### Dictionary
+### Lessons (Grammar only)
 | Method | Endpoint | Mô tả |
 |--------|----------|-------|
-| GET | `/api/dictionary/:word` | Lookup word definition |
-
-### Audio
-| Method | Endpoint | Mô tả |
-|--------|----------|-------|
-| POST | `/api/audio/upload` | Upload audio file |
-| DELETE | `/api/audio/delete` | Delete audio file |
+| GET | `/api/lessons?boardId=:id` | List lessons in board |
+| GET | `/api/lessons/:id` | Get lesson detail |
+| POST | `/api/lessons` | Create lesson (admin) |
+| PUT | `/api/lessons/:id` | Update lesson (admin) |
+| DELETE | `/api/lessons/:id` | Delete lesson (admin) |
 
 ## Thiết kế Database
 
 ```
-boards (1) ──→ (N) vocabulary/grammar/expressions
-topics (1) ──→ (N) vocabulary/grammar/expressions
+boards (1) ──→ (N) lessons (Grammar only)
+lessons (1) ──→ (N) grammar items
+boards (1) ──→ (N) vocabulary/expressions (direct)
 ```
 
 ### Schema Highlights
 
 **boards**
 - `id`, `name`, `type` (grammar/vocabulary/idioms)
-- `itemIds` (JSONB array) - Flexible references
-- `color`, `icon` - UI customization
+- `itemIds` (JSONB array) - References to items (vocabulary/expressions only)
+- `description`, `color`, `icon`, `order`
+- Grammar boards use lessons instead of direct itemIds
+
+**lessons** (Grammar only)
+- `id`, `boardId`, `title`, `description`
+- `itemIds` (JSONB array) - References to grammar items
+- `order` - Position in board
 
 **vocabulary**
 - `word`, `phonetic`, `audioUrl`
@@ -160,6 +192,7 @@ topics (1) ──→ (N) vocabulary/grammar/expressions
 - `examples`, `synonyms`, `wordForms` (JSONB arrays)
 - `level` (enum), `band` (real) - IELTS scoring
 - `topics` (JSONB) - Multiple topic tags
+- `grammar` - Grammar notes
 
 **grammar**
 - `title`, `structure`, `explanation`
@@ -172,6 +205,7 @@ topics (1) ──→ (N) vocabulary/grammar/expressions
 - `meaning`, `examples`
 - `context` (JSONB) - register, mode, frequency
 - `synonyms`, `relatedWords`
+- `category`, `topics`
 
 ### Indexes
 
@@ -222,38 +256,70 @@ Khi import bulk, có thể có từ trùng lặp.
 
 ## Board System Design
 
-### Tại sao dùng JSONB array thay vì junction table?
+### Grammar: 2-Level Hierarchy (Board → Lessons → Items)
 
-**Option 1: Junction Table**
-```sql
-board_items (board_id, item_id, item_type, position)
+Grammar sử dụng cấu trúc 2 cấp để tổ chức tốt hơn:
+
+```
+Grammar Board
+├── Lesson 1: Present Tenses
+│   ├── Present Simple
+│   ├── Present Continuous
+│   └── Present Perfect
+├── Lesson 2: Past Tenses
+│   ├── Past Simple
+│   └── Past Continuous
 ```
 
-**Option 2: JSONB Array** (Đã chọn)
-```sql
-boards.itemIds = ["vocab_1", "grammar_2", "expr_3"]
+**Lý do:**
+- Grammar patterns thường được nhóm theo chủ đề (tenses, conditionals, etc.)
+- Dễ dàng tổ chức curriculum
+- Sidebar có dropdown để navigate
+
+**Implementation:**
+- `boards` table: chứa grammar boards
+- `lessons` table: `boardId` foreign key, `itemIds` JSONB array
+- `grammar` table: individual grammar items
+
+### Vocabulary & Idioms: Flat Structure (Board → Items)
+
+Vocabulary và Idioms dùng cấu trúc phẳng:
+
+```
+Vocabulary Board
+├── Word 1
+├── Word 2
+└── Word 3
 ```
 
-**Trade-offs:**
+**Lý do:**
+- Không cần phân cấp phức tạp
+- Vocabulary thường học theo board/topic trực tiếp
+- Đơn giản hơn cho user
 
-Junction table:
-- ✅ Normalized, foreign keys
-- ✅ Easy to query items by board
-- ❌ Phức tạp khi reorder
-- ❌ 3 tables join để lấy board data
+**Implementation:**
+- `boards.itemIds` JSONB array chứa trực tiếp vocabulary/expression IDs
 
-JSONB array:
-- ✅ Simple schema, 1 query lấy hết
-- ✅ Reorder dễ (update array)
-- ✅ Mixed types (vocab + grammar + expressions)
-- ❌ Không có foreign key constraint
-- ❌ Phải validate manually
+### Cascade Delete Logic
 
-**Kết luận:** JSONB phù hợp vì:
-- Board size nhỏ (< 100 items)
-- Reorder thường xuyên
-- Mixed content types
-- Read-heavy workload
+Khi xóa board:
+
+**Grammar Board:**
+1. Lấy tất cả lessons của board
+2. Với mỗi lesson:
+   - Xóa tất cả grammar items trong `lesson.itemIds`
+   - Xóa lesson
+3. Xóa các grammar items trực tiếp trong `board.itemIds` (nếu có)
+4. Xóa board
+
+**Vocabulary/Idioms Board:**
+1. Xóa tất cả items trong `board.itemIds`
+2. Xóa board
+
+**Script cleanup:**
+```bash
+npm run db:clean  # Xóa orphaned data (lessons/items không còn board)
+```
 
 ## Authentication Strategy
 
@@ -346,16 +412,41 @@ SELECT * FROM vocabulary WHERE topics @> '["business"]';
 
 ## Challenges & Solutions
 
-### 1. Audio File Management
+### 1. Grammar Organization: Flat vs Hierarchical
 
-**Problem:** Lưu audio files ở đâu? Database hay file system?
+**Problem:** Grammar patterns cần tổ chức theo chủ đề (tenses, conditionals, etc.) nhưng vocabulary thì không.
 
 **Solution:** 
-- Upload lên Vercel Blob Storage
-- Lưu URL trong database
-- Fallback về external API nếu không có user audio
+- Grammar: 2-level hierarchy (Board → Lessons → Items)
+- Vocabulary/Idioms: Flat structure (Board → Items)
+- Sidebar tự động detect và hiển thị dropdown cho grammar, simple list cho vocabulary/idioms
 
-### 2. Mixed Content Types trong Boards
+### 2. Cascade Delete Complexity
+
+**Problem:** Khi xóa board, cần xóa tất cả lessons và items bên trong. Làm sao đảm bảo không bỏ sót?
+
+**Solution:**
+```typescript
+// boardsRepo.delete()
+if (board.type === 'grammar') {
+  // 1. Get all lessons
+  const lessons = await lessonsRepo.getAll(boardId);
+  
+  // 2. Delete items in each lesson
+  for (const lesson of lessons) {
+    for (const itemId of lesson.itemIds) {
+      await grammarRepo.delete(itemId);
+    }
+    await lessonsRepo.delete(lesson.id);
+  }
+}
+// 3. Delete items directly in board
+// 4. Delete board
+```
+
+Plus cleanup script để xóa orphaned data định kỳ.
+
+### 3. Mixed Content Types trong Boards
 
 **Problem:** Board chứa cả vocabulary, grammar, expressions. Làm sao fetch efficiently?
 
@@ -375,16 +466,24 @@ const [vocabs, grammars, expressions] = await Promise.all([
 
 3 queries song song thay vì N+1.
 
-### 3. IELTS Band Score Precision
+### 4. Form Flexibility for Vocabulary
 
-**Problem:** Band score có thể là 6.5, 7.0, 7.5... Dùng INT hay FLOAT?
+**Problem:** Users muốn nhập vocabulary theo nhiều cách khác nhau.
+
+**Solution:** 3 input methods trong AddVocabularyForm:
+- **Manual**: Form fields đầy đủ
+- **Dictionary API**: Tra từ điển tự động, sau đó edit
+- **JSON Import**: Paste JSON cho bulk import
+
+### 5. Permission Management
+
+**Problem:** Cần phân quyền admin nhưng không muốn phức tạp với user system.
 
 **Solution:**
-```typescript
-band: real('band') // PostgreSQL REAL type
-```
-
-REAL (4 bytes) đủ cho precision, nhẹ hơn DOUBLE.
+- Simple cookie-based auth với admin password
+- `requireAuth()` và `getAdminStatus()` middleware
+- Error dialogs thân thiện khi không có quyền
+- Có thể upgrade sau nếu cần multi-user
 
 ## Limitations & Future Improvements
 
@@ -395,43 +494,76 @@ REAL (4 bytes) đủ cho precision, nhẹ hơn DOUBLE.
 - Mobile app (React Native)
 - Collaborative boards (real-time)
 - AI-powered suggestions
+- Full-text search
+- Export boards to PDF/Excel
 
 ### Production-ready cần thêm
 - Rate limiting (tránh abuse API)
 - Error monitoring (Sentry)
 - Analytics (Plausible/Umami)
-- Backup strategy (automated DB backups)
+- Automated DB backups
 - CDN cho audio files
-- Full-text search với PostgreSQL tsvector
+- Comprehensive tests (unit + integration)
+- CI/CD pipeline
 
 ## Project Structure
 
 ```
 src/
 ├── components/
-│   ├── dashboard/      # Board cards, vocabulary cards
-│   ├── vocabulary/     # Vocabulary-specific components
-│   ├── ui/            # shadcn/ui components
-│   └── audio/         # Audio player components
+│   ├── dashboard/           # Dashboard components
+│   │   ├── GrammarBoardsGrid.tsx      # Grammar boards list
+│   │   ├── GrammarBoardDetail.tsx     # Grammar board with lessons
+│   │   ├── GrammarLessonDetail.tsx    # Lesson with grammar items
+│   │   ├── VocabularyBoardsGrid.tsx   # Vocabulary boards list
+│   │   ├── VocabularyBoardDetail.tsx  # Vocabulary board with items
+│   │   ├── ExpressionsBoardsGrid.tsx  # Expressions boards list
+│   │   ├── ExpressionsBoardDetail.tsx # Expressions board with items
+│   │   ├── BoardsListWithLessons.tsx  # Sidebar navigation
+│   │   ├── CreateBoardModal.tsx       # Create board modal
+│   │   ├── EditBoardModal.tsx         # Edit board modal
+│   │   ├── DeleteBoardDialog.tsx      # Delete board dialog
+│   │   ├── CreateLessonModal.tsx      # Create lesson modal (grammar)
+│   │   ├── EditLessonModal.tsx        # Edit lesson modal (grammar)
+│   │   └── DeleteLessonDialog.tsx     # Delete lesson dialog (grammar)
+│   ├── admin/               # Admin forms
+│   │   ├── AddVocabularyForm.tsx      # Add vocabulary (3 methods)
+│   │   ├── EditVocabularyForm.tsx     # Edit vocabulary
+│   │   ├── AddGrammarForm.tsx         # Add grammar
+│   │   ├── EditGrammarForm.tsx        # Edit grammar
+│   │   ├── AddExpressionForm.tsx      # Add expression
+│   │   └── EditExpressionForm.tsx     # Edit expression
+│   └── ui/                  # shadcn/ui components
 ├── pages/
-│   ├── api/           # API routes
-│   │   ├── auth/
-│   │   ├── boards/
-│   │   ├── vocabulary/
-│   │   ├── grammar/
-│   │   └── expressions/
-│   ├── dashboard/     # Dashboard pages
-│   └── index.astro    # Landing page
+│   ├── api/                 # API routes
+│   │   ├── auth/            # Authentication
+│   │   ├── boards/          # Boards CRUD + items management
+│   │   ├── lessons/         # Lessons CRUD (grammar only)
+│   │   ├── vocabulary/      # Vocabulary CRUD + fetch API
+│   │   ├── grammar/         # Grammar CRUD
+│   │   └── expressions/     # Expressions CRUD
+│   ├── dashboard/           # Dashboard pages (SPA)
+│   └── index.astro          # Landing page
 ├── lib/
 │   ├── db/
-│   │   ├── schema.ts  # Drizzle schema
-│   │   └── seed.ts    # Seed scripts
-│   ├── repositories/  # Data access layer
-│   └── auth.ts        # Auth utilities
-└── styles/            # Global styles
+│   │   ├── schema.ts        # Drizzle schema
+│   │   ├── client.ts        # Database client
+│   │   └── seed*.ts         # Seed scripts
+│   ├── repositories/        # Data access layer
+│   │   ├── boards.ts        # Boards repo with cascade delete
+│   │   ├── lessons.ts       # Lessons repo
+│   │   ├── vocabulary.ts    # Vocabulary repo
+│   │   ├── grammar.ts       # Grammar repo
+│   │   └── expressions.ts   # Expressions repo
+│   ├── auth.ts              # Auth utilities
+│   └── queryClient.ts       # TanStack Query client
+└── contexts/
+    └── AdminContext.tsx     # Admin state context
 
-scripts/               # Seed & migration scripts
-drizzle/              # Migration files
+scripts/                     # Utility scripts
+├── clean-orphaned-data.ts   # Clean orphaned lessons/items
+├── seed-*.ts                # Various seed scripts
+└── README.md                # Scripts documentation
 ```
 
 ## Scripts
