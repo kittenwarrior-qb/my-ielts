@@ -45,18 +45,18 @@ export default {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
-        // IELTS Red - Primary Brand Color
+        // IELTS Red - Primary Brand Color (Softened like #58CC02)
         ielts: {
-          50: '#FEF2F2',
-          100: '#FEE2E2',
-          200: '#FECACA',
-          300: '#FCA5A5',
-          400: '#F87171',
-          500: '#E4002B', // IELTS Brand Red
-          600: '#DC2626',
-          700: '#B91C1C',
-          800: '#991B1B',
-          900: '#7F1D1D',
+          50: '#FFF5F5',
+          100: '#FFE3E3',
+          200: '#FFC9C9',
+          300: '#FFA8A8',
+          400: '#FF8787',
+          500: '#FF6B6B', // Softened IELTS Red (similar saturation to #58CC02)
+          600: '#FA5252',
+          700: '#F03E3E',
+          800: '#E03131',
+          900: '#C92A2A',
         },
         // Complementary Teal - Secondary Color
         teal: {
@@ -146,12 +146,13 @@ export default {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
-        xl: '1rem',
-        '2xl': '1.5rem',
-        '3xl': '2rem',
+        xl: '0.75rem',
+        '2xl': '1rem',
+        '3xl': '1.25rem',
       },
       fontFamily: {
-        sans: ['Nunito', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        sans: ['DIN Round Pro', 'Nunito', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['DIN Round Pro', 'Nunito', 'system-ui', 'sans-serif'],
       },
       keyframes: {
         'accordion-down': {

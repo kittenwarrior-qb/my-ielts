@@ -1,8 +1,9 @@
 import type { APIRoute } from 'astro';
 import { vocabularyRepo } from '../../../../lib/repositories/vocabulary';
+import { boardsRepo } from '../../../../lib/repositories/boards';
 import { requireAdmin } from '../../../../lib/auth';
 
-export const PUT: APIRoute = async ({ params, request, cookies }) => {
+export const DELETE: APIRoute = async ({ params, cookies }) => {
   // Check admin authentication
   if (!requireAdmin(cookies)) {
     return new Response(
@@ -21,35 +22,8 @@ export const PUT: APIRoute = async ({ params, request, cookies }) => {
   }
 
   try {
-    const data = await request.json();
-
-    // Validate required fields
-    if (!data.word || !data.phonetic || !data.types || !data.level || data.band === undefined) {
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'Missing required fields: word, phonetic, types, level, band',
-          type: 'VALIDATION_ERROR'
-        }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Update vocabulary
-    const vocabulary = await vocabularyRepo.update(id, {
-      word: data.word,
-      phonetic: data.phonetic,
-      audioUrl: data.audioUrl || null,
-      types: data.types,
-      examples: data.examples || [],
-      synonyms: data.synonyms || [],
-      wordForms: data.wordForms || [],
-      topics: data.topics || [],
-      level: data.level,
-      band: data.band,
-      grammar: data.grammar || null,
-    });
-
+    // Check if vocabulary exists
+    const vocabulary = await vocabularyRepo.getById(id);
     if (!vocabulary) {
       return new Response(
         JSON.stringify({ 
@@ -61,20 +35,42 @@ export const PUT: APIRoute = async ({ params, request, cookies }) => {
       );
     }
 
+    // Remove from all boards (cascade deletion)
+    const allBoards = await boardsRepo.getAll({ type: 'vocabulary' });
+    for (const board of allBoards) {
+      const itemIds = board.itemIds as string[];
+      if (itemIds.includes(id)) {
+        await boardsRepo.removeItem(board.id, id);
+      }
+    }
+
+    // Delete vocabulary
+    const deleted = await vocabularyRepo.delete(id);
+
+    if (!deleted) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Failed to delete vocabulary',
+          type: 'DATABASE_ERROR'
+        }),
+        { status: 500, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
     return new Response(
       JSON.stringify({ 
         success: true, 
-        data: vocabulary,
-        message: 'Vocabulary updated successfully' 
+        message: 'Vocabulary deleted successfully' 
       }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('Update vocabulary error:', error);
+    console.error('Delete vocabulary error:', error);
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: 'Failed to update vocabulary',
+        error: 'Failed to delete vocabulary',
         type: 'DATABASE_ERROR'
       }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }

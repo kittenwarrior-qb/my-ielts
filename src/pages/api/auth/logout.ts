@@ -1,11 +1,12 @@
 import type { APIRoute } from 'astro';
 import { clearSession } from '../../../lib/auth';
 
-export const POST: APIRoute = async ({ cookies }) => {
+export const POST: APIRoute = async ({ cookies, redirect }) => {
   clearSession(cookies);
+  return redirect('/login');
+};
 
-  return new Response(
-    JSON.stringify({ success: true, message: 'Logged out successfully' }),
-    { status: 200, headers: { 'Content-Type': 'application/json' } }
-  );
+export const GET: APIRoute = async ({ cookies, redirect }) => {
+  clearSession(cookies);
+  return redirect('/login');
 };

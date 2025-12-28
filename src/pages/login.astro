@@ -1,0 +1,94 @@
+---
+import { isAuthenticated } from '../lib/auth';
+
+// Redirect if already logged in
+if (isAuthenticated(Astro.cookies)) {
+  return Astro.redirect('/dashboard');
+}
+
+const error = Astro.url.searchParams.get('error');
+---
+
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đăng nhập | My IELTS</title>
+  </head>
+  <body class="bg-gradient-to-br from-red-50 via-orange-50 to-pink-50 min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+      <!-- Logo -->
+      <div class="text-center mb-8">
+        <h1 class="text-4xl font-black mb-2" style="color: #4B4B4B;">
+          My <span style="color: #FF6B6B;">IELTS</span>
+        </h1>
+        <p class="font-medium" style="color: #4B4B4B;">Đăng nhập để tiếp tục</p>
+      </div>
+
+      <!-- Login Card -->
+      <div class="bg-white rounded-3xl shadow-xl p-8">
+        <form action="/api/auth/login" method="POST" class="space-y-6">
+          {error && (
+            <div class="p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl text-sm font-medium">
+              {error === 'invalid' ? 'Tên đăng nhập hoặc mật khẩu không đúng' : 'Có lỗi xảy ra'}
+            </div>
+          )}
+
+          <div>
+            <label for="username" class="block text-sm font-bold mb-2" style="color: #4B4B4B;">
+              Tên đăng nhập
+            </label>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              required
+              class="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl focus:outline-none transition-colors font-medium"
+              style="color: #4B4B4B;"
+              placeholder="admin"
+            />
+          </div>
+
+          <div>
+            <label for="password" class="block text-sm font-bold mb-2" style="color: #4B4B4B;">
+              Mật khẩu
+            </label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              required
+              class="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl focus:outline-none transition-colors font-medium"
+              style="color: #4B4B4B;"
+              placeholder="••••••"
+            />
+          </div>
+
+          <button
+            type="submit"
+            class="w-full text-white font-black py-3 px-6 rounded-2xl transition-all shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
+            style="background-color: #FF6B6B;"
+            onmouseover="this.style.backgroundColor='#FA5252'"
+            onmouseout="this.style.backgroundColor='#FF6B6B'"
+          >
+            Đăng nhập
+          </button>
+        </form>
+
+        <div class="mt-6 text-center text-sm font-medium" style="color: #4B4B4B;">
+          <p>Demo: username: <strong>admin</strong>, password: <strong>123</strong></p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+
+<style is:global>
+  @import '../styles/global.css';
+  
+  input:focus {
+    border-color: #FF6B6B !important;
+    box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.1) !important;
+  }
+</style>

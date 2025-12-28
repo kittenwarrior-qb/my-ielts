@@ -1,10 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { useExpressionsByIds } from '../../hooks/useData';
 import type { Board, Expression } from '@/lib/db/schema';
-import { Plus, Zap, Target, ArrowLeft } from 'lucide-react';
+import { Plus, ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import ExpressionDetailModal from './ExpressionDetailModal.tsx';
+import AddExpressionForm from '../admin/AddExpressionForm';
+import { useAdmin } from '../../contexts/AdminContext';
 
 interface ExpressionsBoardDetailProps {
   boardId: string;
@@ -18,8 +20,10 @@ async function fetchBoard(boardId: string): Promise<Board> {
 
 export default function ExpressionsBoardDetail({ boardId }: ExpressionsBoardDetailProps) {
   const [selectedExpression, setSelectedExpression] = useState<Expression | null>(null);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const { isAdmin } = useAdmin();
   
-  const { data: board, isLoading: boardLoading } = useQuery({
+  const { data: board, isLoading: boardLoading, refetch: refetchBoard } = useQuery({
     queryKey: ['board', boardId],
     queryFn: () => fetchBoard(boardId),
   });
@@ -61,10 +65,10 @@ export default function ExpressionsBoardDetail({ boardId }: ExpressionsBoardDeta
   };
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-6">
+        <div className="mb-4 sm:mb-6">
           <Link 
             to="/dashboard/expressions" 
             className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-black mb-4"
@@ -72,28 +76,28 @@ export default function ExpressionsBoardDetail({ boardId }: ExpressionsBoardDeta
             <ArrowLeft className="w-4 h-4" />
             Quay lại Expressions Boards
           </Link>
-          <h1 className="text-2xl font-bold text-black mb-2">{board.name}</h1>
-          <p className="text-gray-600">{board.description || 'Không có mô tả'}</p>
+          <h1 className="text-2xl font-bold mb-2">{board.name}</h1>
+          <p className="text-sm sm:text-base text-gray-600">{board.description || 'Không có mô tả'}</p>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-2 mb-6">
-          <button className="flex items-center gap-2 px-4 py-2 bg-black text-white text-sm hover:bg-gray-800">
-            <Plus className="w-4 h-4" />
-            Thêm Expression
-          </button>
-          <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-sm hover:bg-gray-50">
-            <Zap className="w-4 h-4" />
-            Speed Review
-          </button>
-          <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-sm hover:bg-gray-50">
-            <Target className="w-4 h-4" />
-            Trắc nghiệm
-          </button>
+        <div className="flex gap-2 mb-4 sm:mb-6 overflow-x-auto pb-2">
+          {isAdmin && (
+            <button 
+              onClick={() => setShowAddForm(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-white font-bold hover:shadow-lg transition-all hover:scale-105 active:scale-95 whitespace-nowrap"
+              style={{ backgroundColor: '#FF6B6B', fontSize: '1rem' }}
+              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#FA5252'}
+              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#FF6B6B'}
+            >
+              <Plus className="w-5 h-5" />
+              Thêm Expression
+            </button>
+          )}
         </div>
 
         {/* Expression Items Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {expressionItems?.map((item) => (
             <div
               key={item.id}
@@ -160,6 +164,17 @@ export default function ExpressionsBoardDetail({ boardId }: ExpressionsBoardDeta
             item={selectedExpression}
             isOpen={!!selectedExpression}
             onClose={() => setSelectedExpression(null)}
+          />
+        )}
+
+        {/* Add Expression Form */}
+        {showAddForm && (
+          <AddExpressionForm
+            onSuccess={() => {
+              setShowAddForm(false);
+              refetchBoard();
+            }}
+            onCancel={() => setShowAddForm(false)}
           />
         )}
       </div>

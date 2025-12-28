@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { vocabularyRepo } from '../../../../lib/repositories/vocabulary';
+import { grammarRepo } from '../../../../lib/repositories/grammar';
 import { requireAdmin } from '../../../../lib/auth';
 
 export const PUT: APIRoute = async ({ params, request, cookies }) => {
@@ -24,37 +24,35 @@ export const PUT: APIRoute = async ({ params, request, cookies }) => {
     const data = await request.json();
 
     // Validate required fields
-    if (!data.word || !data.phonetic || !data.types || !data.level || data.band === undefined) {
+    if (!data.title || !data.structure || !data.explanation || !data.level) {
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: 'Missing required fields: word, phonetic, types, level, band',
+          error: 'Missing required fields: title, structure, explanation, level',
           type: 'VALIDATION_ERROR'
         }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    // Update vocabulary
-    const vocabulary = await vocabularyRepo.update(id, {
-      word: data.word,
-      phonetic: data.phonetic,
-      audioUrl: data.audioUrl || null,
-      types: data.types,
+    // Update grammar
+    const grammar = await grammarRepo.update(id, {
+      title: data.title,
+      structure: data.structure,
+      explanation: data.explanation,
       examples: data.examples || [],
-      synonyms: data.synonyms || [],
-      wordForms: data.wordForms || [],
+      usage: data.usage || null,
+      notes: data.notes || null,
       topics: data.topics || [],
       level: data.level,
-      band: data.band,
-      grammar: data.grammar || null,
+      externalLinks: data.externalLinks || null,
     });
 
-    if (!vocabulary) {
+    if (!grammar) {
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: 'Vocabulary not found',
+          error: 'Grammar not found',
           type: 'NOT_FOUND_ERROR'
         }),
         { status: 404, headers: { 'Content-Type': 'application/json' } }
@@ -64,17 +62,17 @@ export const PUT: APIRoute = async ({ params, request, cookies }) => {
     return new Response(
       JSON.stringify({ 
         success: true, 
-        data: vocabulary,
-        message: 'Vocabulary updated successfully' 
+        data: grammar,
+        message: 'Grammar updated successfully' 
       }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('Update vocabulary error:', error);
+    console.error('Update grammar error:', error);
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: 'Failed to update vocabulary',
+        error: 'Failed to update grammar',
         type: 'DATABASE_ERROR'
       }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }

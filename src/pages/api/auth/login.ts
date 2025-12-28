@@ -1,38 +1,29 @@
 import type { APIRoute } from 'astro';
-import { verifyPassword, createSessionToken, setSessionCookie } from '../../../lib/auth';
+import { verifyCredentials, createSessionToken, setSessionCookie } from '../../../lib/auth';
 
-export const POST: APIRoute = async ({ request, cookies }) => {
+export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   try {
-    const { password } = await request.json();
+    const formData = await request.formData();
+    const username = formData.get('username')?.toString();
+    const password = formData.get('password')?.toString();
 
-    if (!password) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Password is required' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
+    if (!username || !password) {
+      return redirect('/login?error=missing');
     }
 
-    // Verify password
-    if (!verifyPassword(password)) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Invalid password' }),
-        { status: 401, headers: { 'Content-Type': 'application/json' } }
-      );
+    // Verify credentials
+    if (!verifyCredentials(username, password)) {
+      return redirect('/login?error=invalid');
     }
 
     // Create session
     const token = createSessionToken();
     setSessionCookie(cookies, token);
 
-    return new Response(
-      JSON.stringify({ success: true, message: 'Login successful' }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
-    );
+    // Redirect to dashboard
+    return redirect('/dashboard');
   } catch (error) {
     console.error('Login error:', error);
-    return new Response(
-      JSON.stringify({ success: false, error: 'Login failed' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    );
+    return redirect('/login?error=server');
   }
 };

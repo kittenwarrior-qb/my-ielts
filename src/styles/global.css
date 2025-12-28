@@ -1,142 +1,182 @@
+@import './fonts.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
+    /* Color palette with #4B4B4B as primary dark and softened IELTS red */
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 355 100% 45%; /* IELTS Red */
+    --foreground: 0 0% 29%; /* #4B4B4B */
+    --primary: 0 100% 71%; /* Softened IELTS Red #FF6B6B */
     --primary-foreground: 0 0% 100%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 355 100% 45%; /* IELTS Red */
-    --radius: 0.5rem;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 355 100% 70%; /* Lighter IELTS Red for dark mode */
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 355 100% 70%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 0 0% 29%;
+    --accent: 48 96% 53%; /* Yellow accent */
+    --accent-foreground: 0 0% 29%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 0 0% 46%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 0 100% 71%;
+    --radius: 0.5rem; /* Reduced from 1rem for squarer borders */
   }
 
   html {
-    font-family: 'Nunito', 'Inter', system-ui, sans-serif;
+    font-family: 'DIN Round Pro', 'Nunito', system-ui, sans-serif;
+    font-size: 18px; /* Increased from 16px */
   }
   
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-gray-50 antialiased;
+    color: #4B4B4B !important;
   }
 
   * {
     @apply border-border;
   }
+  
+  /* Override all text colors to #4B4B4B */
+  h1, h2, h3, h4, h5, h6, p, span, div, a, label, button, input, textarea {
+    color: #4B4B4B;
+  }
+  
+  /* Increase heading sizes */
+  h1 {
+    font-size: 2.25rem; /* Increased */
+  }
+  
+  h2 {
+    font-size: 2rem; /* Increased */
+  }
+  
+  h3 {
+    font-size: 1.25rem; /* Smaller than h2 */
+  }
+  
+  h4 {
+    font-size: 1.125rem;
+  }
+  
+  h5, h6 {
+    font-size: 1rem;
+  }
+  
+  /* Specific overrides for Tailwind classes */
+  .text-black,
+  .text-gray-900 {
+    color: #4B4B4B !important;
+  }
+  
+  /* Keep white text white */
+  .text-white {
+    color: white !important;
+  }
+  
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
 }
 
 @layer components {
-  /* Button Base Styles - Duolingo Inspired */
+  /* Duolingo-style buttons - Rounded & Friendly */
   .btn {
-    @apply inline-flex items-center justify-center px-4 py-2.5 rounded-lg font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
-    @apply hover:scale-105 active:scale-95 shadow-md hover:shadow-lg;
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-bold transition-all duration-200;
+    @apply focus:outline-none focus:ring-4 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply shadow-md hover:shadow-lg active:scale-95;
+    color: white;
+    font-size: 1rem; /* Larger font */
   }
   
   .btn-primary {
-    @apply bg-ielts-500 text-white hover:bg-ielts-600 active:bg-ielts-700 focus:ring-ielts-500;
+    @apply bg-[#FF6B6B] text-white hover:bg-[#FA5252] focus:ring-red-300;
   }
   
   .btn-secondary {
-    @apply bg-teal-500 text-white hover:bg-teal-600 active:bg-teal-700 focus:ring-teal-500;
+    @apply bg-blue-500 text-white hover:bg-blue-600 focus:ring-blue-300;
   }
   
   .btn-success {
-    @apply bg-success-500 text-white hover:bg-success-600 active:bg-success-700 focus:ring-success-500;
+    @apply bg-emerald-500 text-white hover:bg-emerald-600 focus:ring-emerald-300;
   }
   
   .btn-danger {
-    @apply bg-danger-500 text-white hover:bg-danger-600 active:bg-danger-700 focus:ring-danger-500;
+    @apply bg-red-500 text-white hover:bg-red-600 focus:ring-red-300;
   }
   
   .btn-ghost {
-    @apply bg-transparent text-gray-700 hover:bg-gray-100 active:bg-gray-200 focus:ring-gray-500 shadow-none;
-    @apply dark:text-gray-300 dark:hover:bg-gray-800 dark:active:bg-gray-700;
+    @apply bg-transparent hover:bg-gray-100 focus:ring-gray-300 shadow-none;
+    color: #4B4B4B !important;
   }
   
   .btn-outline {
-    @apply bg-transparent border-2 border-ielts-500 text-ielts-600 hover:bg-ielts-50 active:bg-ielts-100 focus:ring-ielts-500 shadow-none;
-    @apply dark:text-ielts-400 dark:hover:bg-ielts-900/20 dark:active:bg-ielts-900/30;
+    @apply bg-white border-2 border-gray-300 hover:bg-gray-50 focus:ring-gray-300;
+    color: #4B4B4B !important;
   }
   
-  /* Input Styles */
+  /* Input styles - Rounded & Clean */
   .input {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ielts-500 focus:border-transparent dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100;
+    @apply w-full px-3 py-2 border-2 border-gray-200 rounded-lg;
+    @apply focus:outline-none focus:border-[#FF6B6B] focus:ring-4 focus:ring-red-100;
+    @apply transition-all duration-200;
+    color: #4B4B4B !important;
+    font-size: 1rem; /* Larger font */
   }
   
-  /* Card Styles - Duolingo Inspired */
+  input, textarea, select {
+    color: #4B4B4B !important;
+    font-size: 1rem; /* Larger font */
+  }
+  
+  input::placeholder, textarea::placeholder {
+    color: #9CA3AF !important;
+  }
+  
+  /* Card styles - Soft & Friendly */
   .card {
-    @apply bg-white rounded-xl shadow-sm border border-gray-200 dark:bg-gray-800 dark:border-gray-700;
+    @apply bg-white rounded-xl shadow-sm border border-gray-100;
     @apply transition-all duration-200;
+    padding: 1rem; /* Reduced padding */
   }
   
   .card-hover {
-    @apply hover:shadow-lg hover:-translate-y-1 cursor-pointer;
+    @apply hover:shadow-xl hover:-translate-y-1 cursor-pointer;
   }
   
-  .card-elevated {
-    @apply shadow-xl border-none;
+  /* Badge styles */
+  .badge {
+    @apply inline-flex items-center px-2 py-1 rounded-lg text-sm font-semibold;
+  }
+  
+  .badge-green {
+    @apply bg-green-100 text-green-700;
+  }
+  
+  .badge-blue {
+    @apply bg-blue-100 text-blue-700;
+  }
+  
+  .badge-yellow {
+    @apply bg-yellow-100 text-yellow-700;
+  }
+  
+  .badge-red {
+    @apply bg-red-100 text-red-700;
+  }
+  
+  .badge-purple {
+    @apply bg-purple-100 text-purple-700;
   }
 }
 
 @layer utilities {
-  /* Animation Keyframes */
-  @keyframes button-press {
-    0% { transform: scale(1); }
-    50% { transform: scale(0.95); }
-    100% { transform: scale(1); }
-  }
-  
-  @keyframes card-lift {
-    from {
-      transform: translateY(0);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
-    to {
-      transform: translateY(-4px);
-      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-    }
-  }
-  
-  @keyframes fade-in-up {
+  /* Animations */
+  @keyframes slide-in {
     from {
       opacity: 0;
-      transform: translateY(20px);
+      transform: translateY(10px);
     }
     to {
       opacity: 1;
@@ -144,42 +184,26 @@
     }
   }
   
-  @keyframes scale-in {
-    from {
+  @keyframes bounce-in {
+    0% {
       opacity: 0;
       transform: scale(0.9);
     }
-    to {
+    50% {
+      transform: scale(1.05);
+    }
+    100% {
       opacity: 1;
       transform: scale(1);
     }
   }
   
-  @keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
+  .animate-slide-in {
+    animation: slide-in 0.3s ease-out;
   }
   
-  /* Animation Classes */
-  .animate-fade-in-up {
-    animation: fade-in-up 0.4s ease-out;
-  }
-  
-  .animate-scale-in {
-    animation: scale-in 0.3s ease-out;
-  }
-  
-  .animate-bounce-hover:hover {
-    animation: bounce 0.6s ease-in-out;
-  }
-  
-  /* Focus Visible Styles */
-  .focus-visible {
-    @apply outline-none ring-2 ring-ielts-500 ring-offset-2 rounded;
-  }
-  
-  .dark .focus-visible {
-    @apply ring-ielts-400;
+  .animate-bounce-in {
+    animation: bounce-in 0.4s ease-out;
   }
 }
 

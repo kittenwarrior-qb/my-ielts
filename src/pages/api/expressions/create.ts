@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { vocabularyRepo } from '../../../lib/repositories/vocabulary';
+import { expressionsRepo } from '../../../lib/repositories/expressions';
 import { requireAdmin } from '../../../lib/auth';
 import { generateId } from '../../../lib/utils';
 
@@ -16,12 +16,12 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     const body = await request.json();
     const { method = 'manual', data, json } = body;
 
-    let vocabularyData;
+    let expressionData;
 
     // Process based on input method
     if (method === 'json' && json) {
       try {
-        vocabularyData = JSON.parse(json);
+        expressionData = JSON.parse(json);
       } catch (parseError) {
         return new Response(
           JSON.stringify({ 
@@ -33,8 +33,8 @@ export const POST: APIRoute = async ({ request, cookies }) => {
           { status: 400, headers: { 'Content-Type': 'application/json' } }
         );
       }
-    } else if (method === 'manual' || method === 'api') {
-      vocabularyData = data;
+    } else if (method === 'manual') {
+      expressionData = data;
     } else {
       return new Response(
         JSON.stringify({ success: false, error: 'Invalid method specified' }),
@@ -43,25 +43,25 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     }
 
     // Validate required fields
-    if (!vocabularyData.word || !vocabularyData.phonetic || !vocabularyData.types || 
-        !vocabularyData.level || vocabularyData.band === undefined) {
+    if (!expressionData.expression || !expressionData.type || !expressionData.meaning || 
+        !expressionData.examples || expressionData.examples.length === 0) {
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: 'Missing required fields: word, phonetic, types, level, band',
+          error: 'Missing required fields: expression, type, meaning, examples',
           type: 'VALIDATION_ERROR'
         }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    // Check for duplicate word
-    const existing = await vocabularyRepo.getByWord(vocabularyData.word);
+    // Check for duplicate expression
+    const existing = await expressionsRepo.getByExpression(expressionData.expression);
     if (existing) {
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: `Vocabulary word "${vocabularyData.word}" already exists`,
+          error: `Expression "${expressionData.expression}" already exists`,
           type: 'DUPLICATE_ERROR',
           existingId: existing.id
         }),
@@ -69,37 +69,36 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       );
     }
 
-    // Create vocabulary
-    const vocabulary = await vocabularyRepo.create({
+    // Create expression
+    const expression = await expressionsRepo.create({
       id: generateId(),
-      word: vocabularyData.word,
-      phonetic: vocabularyData.phonetic,
-      audioUrl: vocabularyData.audioUrl || null,
-      userAudioUrl: null,
-      types: vocabularyData.types,
-      examples: vocabularyData.examples || [],
-      synonyms: vocabularyData.synonyms || [],
-      wordForms: vocabularyData.wordForms || [],
-      topics: vocabularyData.topics || [],
-      level: vocabularyData.level,
-      band: vocabularyData.band,
-      grammar: vocabularyData.grammar || null,
+      expression: expressionData.expression,
+      type: expressionData.type,
+      meaning: expressionData.meaning,
+      examples: expressionData.examples,
+      grammar: expressionData.grammar || null,
+      relatedWords: expressionData.relatedWords || [],
+      topics: expressionData.topics || [],
+      category: expressionData.category || null,
+      synonyms: expressionData.synonyms || null,
+      context: expressionData.context || null,
+      externalLinks: expressionData.externalLinks || null,
     });
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        data: vocabulary,
-        message: 'Vocabulary created successfully' 
+        data: expression,
+        message: 'Expression created successfully' 
       }),
       { status: 201, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('Create vocabulary error:', error);
+    console.error('Create expression error:', error);
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: 'Failed to create vocabulary',
+        error: 'Failed to create expression',
         type: 'DATABASE_ERROR'
       }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }

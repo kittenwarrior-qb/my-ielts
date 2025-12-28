@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
-import { QUERY_KEYS } from '../../hooks/useData';
 import type { Board, Vocabulary } from '@/lib/db/schema';
-import { Plus, Zap, Target, CreditCard } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import VocabularyDetailModal from './VocabularyDetailModal';
+import AddVocabularyForm from '../admin/AddVocabularyForm';
+import { useAdmin } from '../../contexts/AdminContext';
 
 interface VocabularyBoardDetailProps {
   boardId: string;
@@ -29,8 +30,10 @@ async function fetchBoardWithItems(boardId: string) {
 
 export default function VocabularyBoardDetail({ boardId }: VocabularyBoardDetailProps) {
   const [selectedVocab, setSelectedVocab] = useState<Vocabulary | null>(null);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const { isAdmin } = useAdmin();
   
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, refetch } = useQuery({
     queryKey: ['board-detail', boardId],
     queryFn: () => fetchBoardWithItems(boardId),
   });
@@ -54,48 +57,44 @@ export default function VocabularyBoardDetail({ boardId }: VocabularyBoardDetail
   const { board, vocabulary } = data;
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+          <div className="flex items-center gap-2 text-base text-gray-600 mb-3">
             <a href="/dashboard/vocabulary" className="hover:text-black">Vocabulary</a>
             <span>/</span>
-            <span className="text-black">{board.name}</span>
+            <span className="truncate font-medium">{board.name}</span>
           </div>
-          <h1 className="text-2xl font-bold text-black mb-2">{board.name}</h1>
-          <p className="text-gray-600">{board.description || 'Không có mô tả'}</p>
+          <h1 className="text-2xl font-bold mb-3">{board.name}</h1>
+          <p className="text-lg text-gray-600">{board.description || 'Không có mô tả'}</p>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-2 mb-6">
-          <button className="flex items-center gap-2 px-4 py-2 bg-black text-white text-sm hover:bg-gray-800">
-            <Plus className="w-4 h-4" />
-            Thêm
-          </button>
-          <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-sm hover:bg-gray-50">
-            <Zap className="w-4 h-4" />
-            Speed Review
-          </button>
-          <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-sm hover:bg-gray-50">
-            <Target className="w-4 h-4" />
-            Trắc nghiệm
-          </button>
-          <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-sm hover:bg-gray-50">
-            <CreditCard className="w-4 h-4" />
-            Xem thẻ
-          </button>
+        <div className="flex gap-2 mb-4 sm:mb-6 overflow-x-auto pb-2">
+          {isAdmin && (
+            <button 
+              onClick={() => setShowAddForm(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-white font-bold hover:shadow-lg transition-all hover:scale-105 active:scale-95 whitespace-nowrap"
+              style={{ backgroundColor: '#FF6B6B', fontSize: '1rem' }}
+              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#FA5252'}
+              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#FF6B6B'}
+            >
+              <Plus className="w-5 h-5" />
+              Thêm Vocabulary
+            </button>
+          )}
         </div>
 
-        {/* Table */}
-        <div className="border border-gray-200 bg-white">
+        {/* Desktop Table / Mobile Cards */}
+        <div className="hidden md:block border border-gray-200 bg-white overflow-x-auto rounded-xl">
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Thuật ngữ</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cách đọc</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ý nghĩa</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Giải thích</th>
+                <th className="px-4 py-4 text-left text-sm font-bold text-gray-600 uppercase">Thuật ngữ</th>
+                <th className="px-4 py-4 text-left text-sm font-bold text-gray-600 uppercase">Cách đọc</th>
+                <th className="px-4 py-4 text-left text-sm font-bold text-gray-600 uppercase">Ý nghĩa</th>
+                <th className="px-4 py-4 text-left text-sm font-bold text-gray-600 uppercase">Giải thích</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -106,18 +105,18 @@ export default function VocabularyBoardDetail({ boardId }: VocabularyBoardDetail
                 
                 return (
                   <tr key={item.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => setSelectedVocab(item)}>
-                    <td className="px-4 py-3">
-                      <span className="text-black hover:underline font-medium">
+                    <td className="px-4 py-4">
+                      <span className="hover:underline font-bold text-lg">
                         {item.word}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-600">
+                    <td className="px-4 py-4 text-base text-gray-600">
                       {item.phonetic}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
+                    <td className="px-4 py-4 text-base">
                       {firstMeaning}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-600">
+                    <td className="px-4 py-4 text-base text-gray-600">
                       {item.grammar || '-'}
                     </td>
                   </tr>
@@ -128,13 +127,65 @@ export default function VocabularyBoardDetail({ boardId }: VocabularyBoardDetail
 
           {vocabulary.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-gray-500">Chưa có từ vựng nào trong bộ này</p>
+              <p className="text-gray-500 text-lg">Chưa có từ vựng nào trong bộ này</p>
+            </div>
+          )}
+        </div>
+
+        {/* Mobile Card Layout */}
+        <div className="md:hidden space-y-3">
+          {vocabulary.map((item) => {
+            const types = item.types as any;
+            const firstType = Array.isArray(types) ? types[0] : null;
+            const firstMeaning = firstType?.meanings?.[0] || '';
+            
+            return (
+              <div
+                key={item.id}
+                onClick={() => setSelectedVocab(item)}
+                className="bg-white rounded-xl p-5 shadow-sm border border-gray-200 active:bg-gray-50 cursor-pointer"
+              >
+                {/* Word + Audio */}
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1">
+                    <h3 className="text-2xl font-bold mb-1">{item.word}</h3>
+                    <p className="text-base text-gray-500">{item.phonetic}</p>
+                  </div>
+                  {item.audioUrl && (
+                    <button className="p-2 hover:bg-gray-100 rounded-lg">
+                      <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+
+                {/* Meaning */}
+                <div className="mb-3">
+                  <p className="text-lg leading-relaxed">{firstMeaning}</p>
+                </div>
+
+                {/* Grammar Note */}
+                {item.grammar && (
+                  <div className="pt-3 border-t border-gray-100">
+                    <span className="inline-block px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium">
+                      {item.grammar}
+                    </span>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          {vocabulary.length === 0 && (
+            <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
+              <p className="text-gray-500 text-lg">Chưa có từ vựng nào trong bộ này</p>
             </div>
           )}
         </div>
 
         {/* Stats */}
-        <div className="mt-4 text-sm text-gray-600">
+        <div className="mt-6 text-lg font-medium text-gray-600">
           {vocabulary.length} từ vựng
         </div>
 
@@ -144,7 +195,18 @@ export default function VocabularyBoardDetail({ boardId }: VocabularyBoardDetail
             vocabulary={selectedVocab}
             isOpen={!!selectedVocab}
             onClose={() => setSelectedVocab(null)}
-            isAdmin={false} // TODO: Check admin status
+            isAdmin={isAdmin}
+          />
+        )}
+
+        {/* Add Vocabulary Form */}
+        {showAddForm && (
+          <AddVocabularyForm
+            onSuccess={() => {
+              setShowAddForm(false);
+              refetch();
+            }}
+            onCancel={() => setShowAddForm(false)}
           />
         )}
       </div>
