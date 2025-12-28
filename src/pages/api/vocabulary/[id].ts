@@ -28,13 +28,42 @@ export const PUT: APIRoute = async ({ params, request, cookies }) => {
   }
 
   try {
-    const data = await request.json();
+    const payload = await request.json();
     
-    const updated = await vocabularyRepo.update(id, data);
+    console.log('Update vocabulary payload:', JSON.stringify(payload, null, 2));
+    
+    let vocabularyData;
+    
+    // Handle different input methods
+    if (payload.method === 'json') {
+      // Parse JSON string
+      try {
+        vocabularyData = JSON.parse(payload.json);
+        console.log('Parsed JSON data:', vocabularyData);
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        return new Response(
+          JSON.stringify({ success: false, error: 'Invalid JSON format' }),
+          { status: 400, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+    } else if (payload.method === 'manual') {
+      // Use manual form data
+      vocabularyData = payload.data;
+      console.log('Manual form data:', vocabularyData);
+    } else {
+      // Backward compatibility: if no method specified, treat as direct data
+      vocabularyData = payload;
+      console.log('Direct data (backward compatible):', vocabularyData);
+    }
+    
+    console.log('Updating vocabulary with ID:', id);
+    const updated = await vocabularyRepo.update(id, vocabularyData);
+    console.log('Update result:', updated);
 
     if (updated) {
       return new Response(
-        JSON.stringify(updated),
+        JSON.stringify({ success: true, data: updated }),
         { status: 200, headers: { 'Content-Type': 'application/json' } }
       );
     } else {
@@ -46,7 +75,7 @@ export const PUT: APIRoute = async ({ params, request, cookies }) => {
   } catch (error) {
     console.error('Update vocabulary error:', error);
     return new Response(
-      JSON.stringify({ success: false, error: 'Failed to update vocabulary' }),
+      JSON.stringify({ success: false, error: 'Failed to update vocabulary', details: error instanceof Error ? error.message : String(error) }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }

@@ -61,8 +61,35 @@ export const PUT: APIRoute = async ({ params, request, cookies }) => {
       });
     }
 
-    const data = await request.json();
-    const updatedGrammar = await grammarRepo.update(id, data);
+    const body = await request.json();
+    const { method = 'manual', data, json } = body;
+
+    let grammarData;
+
+    // Process based on input method
+    if (method === 'json' && json) {
+      try {
+        grammarData = JSON.parse(json);
+      } catch (parseError) {
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: 'Invalid JSON format',
+            details: parseError instanceof Error ? parseError.message : 'Unknown error'
+          }),
+          { status: 400, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+    } else if (method === 'manual') {
+      grammarData = data;
+    } else {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Invalid method specified' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const updatedGrammar = await grammarRepo.update(id, grammarData);
 
     if (!updatedGrammar) {
       return new Response(JSON.stringify({ success: false, error: 'Grammar item not found' }), {

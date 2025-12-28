@@ -6,7 +6,9 @@ import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import ExpressionDetailModal from './ExpressionDetailModal.tsx';
 import AddExpressionForm from '../admin/AddExpressionForm';
+import EditExpressionForm from '../admin/EditExpressionForm';
 import ErrorDialog from './ErrorDialog';
+import { useAdmin } from '../../contexts/AdminContext';
 
 interface ExpressionsBoardDetailProps {
   boardId: string;
@@ -19,11 +21,14 @@ async function fetchBoard(boardId: string): Promise<Board> {
 }
 
 export default function ExpressionsBoardDetail({ boardId }: ExpressionsBoardDetailProps) {
+  const { isAdmin } = useAdmin();
   const [selectedExpression, setSelectedExpression] = useState<Expression | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editExpression, setEditExpression] = useState<Expression | null>(null);
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [errorTitle, setErrorTitle] = useState('Không có quyền');
   const menuRef = useRef<HTMLDivElement>(null);
   
   const { data: board, isLoading: boardLoading, refetch: refetchBoard } = useQuery({
@@ -54,7 +59,15 @@ export default function ExpressionsBoardDetail({ boardId }: ExpressionsBoardDeta
 
   const handleEdit = (expression: Expression) => {
     setMenuOpenId(null);
-    setSelectedExpression(expression);
+    
+    if (!isAdmin) {
+      setErrorTitle('Không có quyền');
+      setErrorMessage('Bạn không có quyền chỉnh sửa expression.\n\nChỉ Admin mới có thể chỉnh sửa expression.');
+      setShowErrorDialog(true);
+      return;
+    }
+    
+    setEditExpression(expression);
   };
 
   const handleDelete = async (expression: Expression) => {
@@ -73,9 +86,11 @@ export default function ExpressionsBoardDetail({ boardId }: ExpressionsBoardDeta
 
       if (!response.ok || !result.success) {
         if (response.status === 401 || response.status === 403) {
+          setErrorTitle('Không có quyền');
           setErrorMessage(result.error || 'Bạn không có quyền thực hiện thao tác này');
           setShowErrorDialog(true);
         } else {
+          setErrorTitle('Lỗi');
           setErrorMessage(result.error || 'Không thể xóa expression');
           setShowErrorDialog(true);
         }
@@ -84,6 +99,7 @@ export default function ExpressionsBoardDetail({ boardId }: ExpressionsBoardDeta
 
       refetchBoard();
     } catch (err) {
+      setErrorTitle('Lỗi');
       setErrorMessage(err instanceof Error ? err.message : 'Có lỗi xảy ra');
       setShowErrorDialog(true);
     }
@@ -259,6 +275,7 @@ export default function ExpressionsBoardDetail({ boardId }: ExpressionsBoardDeta
         {/* Add Expression Form */}
         {showAddForm && (
           <AddExpressionForm
+            boardId={boardId}
             onSuccess={() => {
               setShowAddForm(false);
               refetchBoard();
@@ -267,10 +284,22 @@ export default function ExpressionsBoardDetail({ boardId }: ExpressionsBoardDeta
           />
         )}
 
+        {/* Edit Expression Form */}
+        {editExpression && (
+          <EditExpressionForm
+            expression={editExpression}
+            onSuccess={() => {
+              setEditExpression(null);
+              refetchBoard();
+            }}
+            onCancel={() => setEditExpression(null)}
+          />
+        )}
+
         {/* Error Dialog */}
         <ErrorDialog
           isOpen={showErrorDialog}
-          title="Không có quyền"
+          title={errorTitle}
           message={errorMessage}
           onClose={() => setShowErrorDialog(false)}
         />

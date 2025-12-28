@@ -3,6 +3,7 @@ import { X, Loader2 } from 'lucide-react';
 import ErrorDialog from '../dashboard/ErrorDialog';
 
 interface AddExpressionFormProps {
+  boardId?: string; // Optional: if provided, add expression to this board
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -29,7 +30,7 @@ const EXPRESSION_JSON_TEMPLATE = `{
   "externalLinks": []
 }`;
 
-export default function AddExpressionForm({ onSuccess, onCancel }: AddExpressionFormProps) {
+export default function AddExpressionForm({ boardId, onSuccess, onCancel }: AddExpressionFormProps) {
   const [method, setMethod] = useState<InputMethod>('manual');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -80,6 +81,23 @@ export default function AddExpressionForm({ onSuccess, onCancel }: AddExpression
           return;
         }
         throw new Error(result.error || 'Failed to create expression');
+      }
+
+      // If boardId is provided, add the expression to the board
+      if (boardId && result.data?.id) {
+        try {
+          const addToBoardResponse = await fetch(`/api/boards/${boardId}/items`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ itemId: result.data.id }),
+          });
+
+          if (!addToBoardResponse.ok) {
+            console.error('Failed to add expression to board');
+          }
+        } catch (boardError) {
+          console.error('Error adding expression to board:', boardError);
+        }
       }
 
       setSuccess('Tạo expression thành công!');

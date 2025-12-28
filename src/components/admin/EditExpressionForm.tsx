@@ -1,31 +1,17 @@
 import { useState } from 'react';
 import { X, Loader2 } from 'lucide-react';
 import ErrorDialog from '../dashboard/ErrorDialog';
+import type { Expression } from '@/lib/db/schema';
 
-interface AddGrammarFormProps {
-  boardId?: string; // Optional: if provided, add grammar to this board
+interface EditExpressionFormProps {
+  expression: Expression;
   onSuccess: () => void;
   onCancel: () => void;
 }
 
 type InputMethod = 'manual' | 'json';
 
-const GRAMMAR_JSON_TEMPLATE = `{
-  "title": "Present Perfect",
-  "structure": "have/has + past participle",
-  "explanation": "Used for actions that started in the past and continue to the present",
-  "examples": [
-    "I have lived here for 5 years.",
-    "She has finished her homework."
-  ],
-  "usage": "Use for experiences, changes, and continuing situations",
-  "notes": "Often used with 'for', 'since', 'already', 'yet'",
-  "topics": ["Tenses", "IELTS Grammar"],
-  "level": "intermediate",
-  "externalLinks": []
-}`;
-
-export default function AddGrammarForm({ boardId, onSuccess, onCancel }: AddGrammarFormProps) {
+export default function EditExpressionForm({ expression, onSuccess, onCancel }: EditExpressionFormProps) {
   const [method, setMethod] = useState<InputMethod>('manual');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -34,18 +20,29 @@ export default function AddGrammarForm({ boardId, onSuccess, onCancel }: AddGram
   const [errorDialogMessage, setErrorDialogMessage] = useState('');
 
   // JSON import state
-  const [jsonInput, setJsonInput] = useState(GRAMMAR_JSON_TEMPLATE);
+  const [jsonInput, setJsonInput] = useState(JSON.stringify({
+    expression: expression.expression,
+    type: expression.type,
+    meaning: expression.meaning,
+    examples: expression.examples,
+    grammar: expression.grammar,
+    relatedWords: expression.relatedWords,
+    topics: expression.topics,
+    category: expression.category,
+    synonyms: expression.synonyms,
+  }, null, 2));
 
-  // Manual form state
+  // Manual form state - initialize with expression data
   const [formData, setFormData] = useState({
-    title: '',
-    structure: '',
-    explanation: '',
-    usage: '',
-    notes: '',
-    level: 'intermediate' as 'beginner' | 'intermediate' | 'advanced',
-    examples: [''],
-    topics: ['IELTS Grammar'],
+    expression: expression.expression || '',
+    type: (expression.type || 'idiom') as 'idiom' | 'phrase',
+    meaning: expression.meaning || '',
+    grammar: expression.grammar || '',
+    category: expression.category || 'speaking',
+    examples: (expression.examples as string[]) || [''],
+    relatedWords: (expression.relatedWords as string[]) || [''],
+    topics: (expression.topics as string[]) || ['IELTS Speaking'],
+    synonyms: (expression.synonyms as string[]) || [''],
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -59,8 +56,8 @@ export default function AddGrammarForm({ boardId, onSuccess, onCancel }: AddGram
         ? { method: 'json', json: jsonInput }
         : { method: 'manual', data: formData };
 
-      const response = await fetch('/api/grammar/create', {
-        method: 'POST',
+      const response = await fetch(`/api/expressions/${expression.id}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
@@ -68,33 +65,15 @@ export default function AddGrammarForm({ boardId, onSuccess, onCancel }: AddGram
       const result = await response.json();
 
       if (!response.ok || !result.success) {
-        // Check if it's a permission error
         if (response.status === 401 || response.status === 403) {
-          setErrorDialogMessage('Bạn cần đăng nhập với tài khoản admin để thực hiện thao tác này');
+          setErrorDialogMessage('Bạn không có quyền chỉnh sửa expression');
           setShowErrorDialog(true);
           return;
         }
-        throw new Error(result.error || 'Failed to create grammar');
+        throw new Error(result.error || 'Failed to update expression');
       }
 
-      // If boardId is provided, add the grammar to the board
-      if (boardId && result.data?.id) {
-        try {
-          const addToBoardResponse = await fetch(`/api/boards/${boardId}/items`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ itemId: result.data.id }),
-          });
-
-          if (!addToBoardResponse.ok) {
-            console.error('Failed to add grammar to board');
-          }
-        } catch (boardError) {
-          console.error('Error adding grammar to board:', boardError);
-        }
-      }
-
-      setSuccess('Tạo grammar thành công!');
+      setSuccess('Cập nhật expression thành công!');
       setTimeout(() => {
         onSuccess();
       }, 1500);
@@ -109,21 +88,21 @@ export default function AddGrammarForm({ boardId, onSuccess, onCancel }: AddGram
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const addArrayItem = (field: 'examples' | 'topics') => {
+  const addArrayItem = (field: 'examples' | 'relatedWords' | 'topics' | 'synonyms') => {
     setFormData(prev => ({
       ...prev,
       [field]: [...prev[field], ''],
     }));
   };
 
-  const updateArrayItem = (field: 'examples' | 'topics', index: number, value: string) => {
+  const updateArrayItem = (field: 'examples' | 'relatedWords' | 'topics' | 'synonyms', index: number, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: prev[field].map((item, i) => i === index ? value : item),
     }));
   };
 
-  const removeArrayItem = (field: 'examples' | 'topics', index: number) => {
+  const removeArrayItem = (field: 'examples' | 'relatedWords' | 'topics' | 'synonyms', index: number) => {
     setFormData(prev => ({
       ...prev,
       [field]: prev[field].filter((_, i) => i !== index),
@@ -134,7 +113,7 @@ export default function AddGrammarForm({ boardId, onSuccess, onCancel }: AddGram
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex justify-between items-center">
-          <h2 className="text-xl font-bold">Thêm Grammar Mới</h2>
+          <h2 className="text-xl font-bold">Chỉnh sửa Expression: {expression.expression}</h2>
           <button onClick={onCancel} className="text-gray-500 hover:text-gray-700">
             <X className="w-6 h-6" />
           </button>
@@ -144,6 +123,7 @@ export default function AddGrammarForm({ boardId, onSuccess, onCancel }: AddGram
         <div className="border-b border-gray-200">
           <div className="flex">
             <button
+              type="button"
               onClick={() => setMethod('manual')}
               className={`px-6 py-3 font-medium ${
                 method === 'manual'
@@ -151,9 +131,10 @@ export default function AddGrammarForm({ boardId, onSuccess, onCancel }: AddGram
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              Nhập thủ công
+              Chỉnh sửa thủ công
             </button>
             <button
+              type="button"
               onClick={() => setMethod('json')}
               className={`px-6 py-3 font-medium ${
                 method === 'json'
@@ -161,7 +142,7 @@ export default function AddGrammarForm({ boardId, onSuccess, onCancel }: AddGram
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              Import JSON
+              Chỉnh sửa JSON
             </button>
           </div>
         </div>
@@ -193,7 +174,7 @@ export default function AddGrammarForm({ boardId, onSuccess, onCancel }: AddGram
                   placeholder="Paste JSON here..."
                 />
                 <p className="mt-2 text-sm text-gray-500">
-                  Chỉnh sửa JSON template ở trên và submit
+                  Chỉnh sửa JSON và submit để cập nhật
                 </p>
               </div>
             </div>
@@ -202,84 +183,74 @@ export default function AddGrammarForm({ boardId, onSuccess, onCancel }: AddGram
           {/* Manual Entry Tab */}
           {method === 'manual' && (
             <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Expression *
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.expression}
+                    onChange={(e) => updateFormField('expression', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black"
+                    placeholder="Break the ice"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Type *
+                  </label>
+                  <select
+                    value={formData.type}
+                    onChange={(e) => updateFormField('type', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black"
+                    required
+                  >
+                    <option value="idiom">Idiom</option>
+                    <option value="phrase">Phrase</option>
+                  </select>
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Title *
+                  Meaning *
+                </label>
+                <textarea
+                  value={formData.meaning}
+                  onChange={(e) => updateFormField('meaning', e.target.value)}
+                  className="w-full h-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black"
+                  placeholder="Explain the meaning..."
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Grammar
                 </label>
                 <input
                   type="text"
-                  value={formData.title}
-                  onChange={(e) => updateFormField('title', e.target.value)}
+                  value={formData.grammar}
+                  onChange={(e) => updateFormField('grammar', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black"
-                  placeholder="Present Perfect"
-                  required
+                  placeholder="Used as a verb phrase"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Structure *
-                </label>
-                <input
-                  type="text"
-                  value={formData.structure}
-                  onChange={(e) => updateFormField('structure', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black"
-                  placeholder="have/has + past participle"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Explanation *
-                </label>
-                <textarea
-                  value={formData.explanation}
-                  onChange={(e) => updateFormField('explanation', e.target.value)}
-                  className="w-full h-24 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black"
-                  placeholder="Explain when and how to use this grammar..."
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Usage
-                </label>
-                <textarea
-                  value={formData.usage}
-                  onChange={(e) => updateFormField('usage', e.target.value)}
-                  className="w-full h-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black"
-                  placeholder="When to use this grammar..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Notes
-                </label>
-                <textarea
-                  value={formData.notes}
-                  onChange={(e) => updateFormField('notes', e.target.value)}
-                  className="w-full h-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black"
-                  placeholder="Additional notes..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Level *
+                  Category
                 </label>
                 <select
-                  value={formData.level}
-                  onChange={(e) => updateFormField('level', e.target.value)}
+                  value={formData.category}
+                  onChange={(e) => updateFormField('category', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black"
-                  required
                 >
-                  <option value="beginner">Beginner</option>
-                  <option value="intermediate">Intermediate</option>
-                  <option value="advanced">Advanced</option>
+                  <option value="speaking">Speaking</option>
+                  <option value="writing">Writing</option>
+                  <option value="general">General</option>
                 </select>
               </div>
 
@@ -319,21 +290,21 @@ export default function AddGrammarForm({ boardId, onSuccess, onCancel }: AddGram
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Topics
+                  Synonyms
                 </label>
-                {formData.topics.map((topic, index) => (
+                {formData.synonyms.map((synonym, index) => (
                   <div key={index} className="flex gap-2 mb-2">
                     <input
                       type="text"
-                      value={topic}
-                      onChange={(e) => updateArrayItem('topics', index, e.target.value)}
+                      value={synonym}
+                      onChange={(e) => updateArrayItem('synonyms', index, e.target.value)}
                       className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black"
-                      placeholder="Topic..."
+                      placeholder="Synonym..."
                     />
-                    {formData.topics.length > 1 && (
+                    {formData.synonyms.length > 1 && (
                       <button
                         type="button"
-                        onClick={() => removeArrayItem('topics', index)}
+                        onClick={() => removeArrayItem('synonyms', index)}
                         className="px-3 py-2 text-red-600 hover:text-red-800"
                       >
                         <X className="w-4 h-4" />
@@ -343,10 +314,10 @@ export default function AddGrammarForm({ boardId, onSuccess, onCancel }: AddGram
                 ))}
                 <button
                   type="button"
-                  onClick={() => addArrayItem('topics')}
+                  onClick={() => addArrayItem('synonyms')}
                   className="text-sm text-blue-600 hover:text-blue-800"
                 >
-                  + Add Topic
+                  + Add Synonym
                 </button>
               </div>
             </div>
@@ -377,7 +348,7 @@ export default function AddGrammarForm({ boardId, onSuccess, onCancel }: AddGram
               onMouseUp={(e) => !loading && (e.currentTarget.style.boxShadow = '0 4px 0 0 #CC3333')}
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-              Tạo Grammar
+              Cập nhật Expression
             </button>
           </div>
         </form>

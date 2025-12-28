@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import type { Board, Vocabulary } from '@/lib/db/schema';
-import { Plus, MoreVertical, Edit, Trash2 } from 'lucide-react';
+import { Plus, MoreVertical, Edit, Trash2, Volume2 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import VocabularyDetailModal from './VocabularyDetailModal';
 import AddVocabularyForm from '../admin/AddVocabularyForm';
+import EditVocabularyForm from '../admin/EditVocabularyForm';
 import ErrorDialog from './ErrorDialog';
 import DeleteVocabularyDialog from './DeleteVocabularyDialog';
 import { useAdmin } from '../../contexts/AdminContext';
@@ -53,10 +54,14 @@ export default function VocabularyBoardDetail({ boardId }: VocabularyBoardDetail
   const { isAdmin } = useAdmin();
   const [selectedVocab, setSelectedVocab] = useState<Vocabulary | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editVocab, setEditVocab] = useState<Vocabulary | null>(null);
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [errorTitle, setErrorTitle] = useState('Không có quyền');
   const [deleteVocab, setDeleteVocab] = useState<Vocabulary | null>(null);
+  const [playingAudio, setPlayingAudio] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   
   const { data, isLoading, refetch } = useQuery({
@@ -86,18 +91,45 @@ export default function VocabularyBoardDetail({ boardId }: VocabularyBoardDetail
     setMenuOpenId(null);
     
     if (!isAdmin) {
+      setErrorTitle('Không có quyền');
       setErrorMessage('Bạn không có quyền chỉnh sửa vocabulary.\n\nChỉ Admin mới có thể chỉnh sửa vocabulary.');
       setShowErrorDialog(true);
       return;
     }
     
-    // Admin: mở modal xem chi tiết (tạm thời, sau này sẽ có edit form)
-    setSelectedVocab(vocab);
+    // Admin: mở EditVocabularyForm
+    setEditVocab(vocab);
   };
 
   const handleDelete = (vocab: Vocabulary) => {
     setMenuOpenId(null);
     setDeleteVocab(vocab);
+  };
+
+  const playAudio = (audioUrl: string, vocabId: string) => {
+    if (playingAudio === vocabId) {
+      // Stop if already playing
+      audioRef.current?.pause();
+      setPlayingAudio(null);
+      return;
+    }
+
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+
+    const audio = new Audio(audioUrl);
+    audioRef.current = audio;
+    setPlayingAudio(vocabId);
+
+    audio.play();
+    audio.onended = () => {
+      setPlayingAudio(null);
+    };
+    audio.onerror = () => {
+      setPlayingAudio(null);
+      console.error('Failed to play audio');
+    };
   };
 
   const confirmDelete = async () => {
@@ -112,9 +144,11 @@ export default function VocabularyBoardDetail({ boardId }: VocabularyBoardDetail
 
       if (!response.ok || !result.success) {
         if (response.status === 401 || response.status === 403) {
+          setErrorTitle('Không có quyền');
           setErrorMessage(result.error || 'Bạn không có quyền thực hiện thao tác này');
           setShowErrorDialog(true);
         } else {
+          setErrorTitle('Lỗi');
           setErrorMessage(result.error || 'Không thể xóa vocabulary');
           setShowErrorDialog(true);
         }
@@ -125,6 +159,7 @@ export default function VocabularyBoardDetail({ boardId }: VocabularyBoardDetail
       setDeleteVocab(null);
       refetch();
     } catch (err) {
+      setErrorTitle('Lỗi');
       setErrorMessage(err instanceof Error ? err.message : 'Có lỗi xảy ra');
       setShowErrorDialog(true);
       setDeleteVocab(null);
@@ -184,15 +219,15 @@ export default function VocabularyBoardDetail({ boardId }: VocabularyBoardDetail
         </div>
 
         {/* Desktop Table / Mobile Cards */}
-        <div className="hidden md:block border border-gray-200 bg-white rounded-xl">
-          <table className="w-full">
+        <div className="hidden md:block border border-gray-200 bg-white rounded-xl overflow-hidden">
+          <table className="w-full table-fixed">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-4 py-4 text-left text-sm font-bold text-gray-600 uppercase">Từ ngữ</th>
-                <th className="px-4 py-4 text-left text-sm font-bold text-gray-600 uppercase">Loại từ</th>
-                <th className="px-4 py-4 text-left text-sm font-bold text-gray-600 uppercase">Phiên âm</th>
-                <th className="px-4 py-4 text-left text-sm font-bold text-gray-600 uppercase">Ý nghĩa</th>
-                <th className="px-4 py-4 w-12"></th>
+                <th className="px-4 py-4 text-left text-sm font-bold text-gray-600 uppercase w-[20%]">Từ ngữ</th>
+                <th className="px-4 py-4 text-left text-sm font-bold text-gray-600 uppercase w-[10%]">Loại từ</th>
+                <th className="px-4 py-4 text-left text-sm font-bold text-gray-600 uppercase w-[20%]">Phiên âm</th>
+                <th className="px-4 py-4 text-left text-sm font-bold text-gray-600 uppercase w-[42%]">Ý nghĩa</th>
+                <th className="px-4 py-4 w-[8%]"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -205,18 +240,32 @@ export default function VocabularyBoardDetail({ boardId }: VocabularyBoardDetail
                 return (
                   <tr key={item.id} className="hover:bg-gray-50 group">
                     <td className="px-4 py-4" onClick={() => setSelectedVocab(item)}>
-                      <span className="hover:underline font-bold text-lg cursor-pointer">
-                        {item.word}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="hover:underline font-bold text-lg cursor-pointer line-clamp-2">
+                          {item.word}
+                        </span>
+                        {item.audioUrl && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              playAudio(item.audioUrl!, item.id);
+                            }}
+                            className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-200 rounded transition-opacity flex-shrink-0"
+                            title="Play pronunciation"
+                          >
+                            <Volume2 className={`w-4 h-4 ${playingAudio === item.id ? 'text-blue-600' : 'text-gray-600'}`} />
+                          </button>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-4 text-base text-gray-600" onClick={() => setSelectedVocab(item)}>
-                      {partOfSpeech}
+                      <span className="line-clamp-2">{partOfSpeech}</span>
                     </td>
                     <td className="px-4 py-4 text-base text-gray-600" onClick={() => setSelectedVocab(item)}>
-                      {item.phonetic}
+                      <span className="line-clamp-2">{item.phonetic}</span>
                     </td>
                     <td className="px-4 py-4 text-base" onClick={() => setSelectedVocab(item)}>
-                      {firstMeaning}
+                      <span className="line-clamp-2">{firstMeaning}</span>
                     </td>
                     <td className="px-4 py-4">
                       <div className="relative" ref={menuOpenId === item.id ? menuRef : null}>
@@ -321,10 +370,14 @@ export default function VocabularyBoardDetail({ boardId }: VocabularyBoardDetail
                       <p className="text-base text-gray-500">{item.phonetic}</p>
                     </div>
                     {item.audioUrl && (
-                      <button className="p-2 hover:bg-gray-100 rounded-lg">
-                        <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-                        </svg>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          playAudio(item.audioUrl!, item.id);
+                        }}
+                        className="p-2 hover:bg-gray-100 rounded-lg"
+                      >
+                        <Volume2 className={`w-6 h-6 ${playingAudio === item.id ? 'text-blue-600' : 'text-gray-600'}`} />
                       </button>
                     )}
                   </div>
@@ -371,6 +424,7 @@ export default function VocabularyBoardDetail({ boardId }: VocabularyBoardDetail
         {/* Add Vocabulary Form */}
         {showAddForm && (
           <AddVocabularyForm
+            boardId={boardId}
             onSuccess={() => {
               setShowAddForm(false);
               refetch();
@@ -379,10 +433,22 @@ export default function VocabularyBoardDetail({ boardId }: VocabularyBoardDetail
           />
         )}
 
+        {/* Edit Vocabulary Form */}
+        {editVocab && (
+          <EditVocabularyForm
+            vocabulary={editVocab}
+            onSuccess={() => {
+              setEditVocab(null);
+              refetch();
+            }}
+            onCancel={() => setEditVocab(null)}
+          />
+        )}
+
         {/* Error Dialog */}
         <ErrorDialog
           isOpen={showErrorDialog}
-          title="Không có quyền"
+          title={errorTitle}
           message={errorMessage}
           onClose={() => setShowErrorDialog(false)}
         />

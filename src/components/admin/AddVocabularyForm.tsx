@@ -3,6 +3,7 @@ import { X, Loader2 } from 'lucide-react';
 import ErrorDialog from '../dashboard/ErrorDialog';
 
 interface AddVocabularyFormProps {
+  boardId?: string; // Optional: if provided, add vocabulary to this board
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -30,7 +31,7 @@ const VOCABULARY_JSON_TEMPLATE = `{
   "grammar": "Countable noun"
 }`;
 
-export default function AddVocabularyForm({ onSuccess, onCancel }: AddVocabularyFormProps) {
+export default function AddVocabularyForm({ boardId, onSuccess, onCancel }: AddVocabularyFormProps) {
   const [method, setMethod] = useState<InputMethod>('manual');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -136,6 +137,23 @@ export default function AddVocabularyForm({ onSuccess, onCancel }: AddVocabulary
           return;
         }
         throw new Error(result.error || 'Failed to create vocabulary');
+      }
+
+      // If boardId is provided, add the vocabulary to the board
+      if (boardId && result.data?.id) {
+        try {
+          const addToBoardResponse = await fetch(`/api/boards/${boardId}/items`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ itemId: result.data.id }),
+          });
+
+          if (!addToBoardResponse.ok) {
+            console.error('Failed to add vocabulary to board');
+          }
+        } catch (boardError) {
+          console.error('Error adding vocabulary to board:', boardError);
+        }
       }
 
       setSuccess('Tạo vocabulary thành công!');

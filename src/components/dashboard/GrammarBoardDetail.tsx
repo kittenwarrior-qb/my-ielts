@@ -6,6 +6,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import GrammarDetailModal from './GrammarDetailModal.tsx';
 import AddGrammarForm from '../admin/AddGrammarForm';
+import EditGrammarForm from '../admin/EditGrammarForm';
 import ErrorDialog from './ErrorDialog';
 import DeleteGrammarDialog from './DeleteGrammarDialog';
 import { useAdmin } from '../../contexts/AdminContext';
@@ -24,9 +25,11 @@ export default function GrammarBoardDetail({ boardId }: GrammarBoardDetailProps)
   const { isAdmin } = useAdmin();
   const [selectedGrammar, setSelectedGrammar] = useState<Grammar | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editGrammar, setEditGrammar] = useState<Grammar | null>(null);
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [errorTitle, setErrorTitle] = useState('Không có quyền');
   const [deleteGrammar, setDeleteGrammar] = useState<Grammar | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   
@@ -60,13 +63,13 @@ export default function GrammarBoardDetail({ boardId }: GrammarBoardDetailProps)
     setMenuOpenId(null);
     
     if (!isAdmin) {
+      setErrorTitle('Không có quyền');
       setErrorMessage('Bạn không có quyền chỉnh sửa grammar.\n\nChỉ Admin mới có thể chỉnh sửa grammar.');
       setShowErrorDialog(true);
       return;
     }
     
-    // Admin: mở modal xem chi tiết (tạm thời, sau này sẽ có edit form)
-    setSelectedGrammar(grammar);
+    setEditGrammar(grammar);
   };
 
   const handleDelete = (grammar: Grammar) => {
@@ -86,9 +89,11 @@ export default function GrammarBoardDetail({ boardId }: GrammarBoardDetailProps)
 
       if (!response.ok || !result.success) {
         if (response.status === 401 || response.status === 403) {
+          setErrorTitle('Không có quyền');
           setErrorMessage(result.error || 'Bạn không có quyền thực hiện thao tác này');
           setShowErrorDialog(true);
         } else {
+          setErrorTitle('Lỗi');
           setErrorMessage(result.error || 'Không thể xóa grammar');
           setShowErrorDialog(true);
         }
@@ -99,6 +104,7 @@ export default function GrammarBoardDetail({ boardId }: GrammarBoardDetailProps)
       setDeleteGrammar(null);
       refetchBoard();
     } catch (err) {
+      setErrorTitle('Lỗi');
       setErrorMessage(err instanceof Error ? err.message : 'Có lỗi xảy ra');
       setShowErrorDialog(true);
       setDeleteGrammar(null);
@@ -269,6 +275,7 @@ export default function GrammarBoardDetail({ boardId }: GrammarBoardDetailProps)
         {/* Add Grammar Form */}
         {showAddForm && (
           <AddGrammarForm
+            boardId={boardId}
             onSuccess={() => {
               setShowAddForm(false);
               refetchBoard();
@@ -277,10 +284,22 @@ export default function GrammarBoardDetail({ boardId }: GrammarBoardDetailProps)
           />
         )}
 
+        {/* Edit Grammar Form */}
+        {editGrammar && (
+          <EditGrammarForm
+            grammar={editGrammar}
+            onSuccess={() => {
+              setEditGrammar(null);
+              refetchBoard();
+            }}
+            onCancel={() => setEditGrammar(null)}
+          />
+        )}
+
         {/* Error Dialog */}
         <ErrorDialog
           isOpen={showErrorDialog}
-          title="Không có quyền"
+          title={errorTitle}
           message={errorMessage}
           onClose={() => setShowErrorDialog(false)}
         />

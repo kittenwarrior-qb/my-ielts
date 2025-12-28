@@ -13,6 +13,26 @@ export interface VocabularyFilters {
 
 export class VocabularyRepository {
   /**
+   * Parse JSON fields if they are strings
+   */
+  private parseVocabularyFields(vocab: any): Vocabulary {
+    try {
+      return {
+        ...vocab,
+        types: typeof vocab.types === 'string' ? JSON.parse(vocab.types) : vocab.types,
+        examples: typeof vocab.examples === 'string' ? JSON.parse(vocab.examples) : vocab.examples,
+        synonyms: typeof vocab.synonyms === 'string' ? JSON.parse(vocab.synonyms) : vocab.synonyms,
+        wordForms: typeof vocab.wordForms === 'string' ? JSON.parse(vocab.wordForms) : vocab.wordForms,
+        topics: typeof vocab.topics === 'string' ? JSON.parse(vocab.topics) : vocab.topics,
+      };
+    } catch (error) {
+      console.error('Error parsing vocabulary fields:', error, vocab);
+      // Return as-is if parsing fails
+      return vocab;
+    }
+  }
+
+  /**
    * Get all vocabulary with optional filters
    */
   async getAll(filters?: VocabularyFilters): Promise<Vocabulary[]> {
@@ -62,7 +82,8 @@ export class VocabularyRepository {
     }
 
     const results = await query;
-    return results as Vocabulary[];
+    console.log(`Found ${results.length} vocabulary items`);
+    return results.map(v => this.parseVocabularyFields(v)) as Vocabulary[];
   }
 
   /**
@@ -75,7 +96,7 @@ export class VocabularyRepository {
       .where(eq(vocabulary.word, word))
       .limit(1);
 
-    return results[0] || null;
+    return results[0] ? this.parseVocabularyFields(results[0]) : null;
   }
 
   /**
@@ -88,7 +109,7 @@ export class VocabularyRepository {
       .where(eq(vocabulary.id, id))
       .limit(1);
 
-    return results[0] || null;
+    return results[0] ? this.parseVocabularyFields(results[0]) : null;
   }
 
   /**
@@ -96,16 +117,30 @@ export class VocabularyRepository {
    */
   async create(data: Omit<Vocabulary, 'createdAt' | 'updatedAt'>): Promise<Vocabulary> {
     const now = new Date();
+    
+    // Ensure JSON fields are objects, not strings
+    const cleanData = {
+      ...data,
+      types: typeof data.types === 'string' ? JSON.parse(data.types) : data.types,
+      examples: typeof data.examples === 'string' ? JSON.parse(data.examples) : data.examples,
+      synonyms: typeof data.synonyms === 'string' ? JSON.parse(data.synonyms) : data.synonyms,
+      wordForms: typeof data.wordForms === 'string' ? JSON.parse(data.wordForms) : data.wordForms,
+      topics: typeof data.topics === 'string' ? JSON.parse(data.topics) : data.topics,
+    };
+    
+    console.log('Creating vocabulary with clean data:', JSON.stringify(cleanData, null, 2));
+    
     const results = await db
       .insert(vocabulary)
       .values({
-        ...data,
+        ...cleanData,
         createdAt: now,
         updatedAt: now,
       })
       .returning();
 
-    return results[0];
+    console.log('Created vocabulary result:', results[0]);
+    return this.parseVocabularyFields(results[0]);
   }
 
   /**
@@ -121,7 +156,7 @@ export class VocabularyRepository {
       .where(eq(vocabulary.id, id))
       .returning();
 
-    return results[0] || null;
+    return results[0] ? this.parseVocabularyFields(results[0]) : null;
   }
 
   /**

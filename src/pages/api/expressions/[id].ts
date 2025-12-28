@@ -61,13 +61,39 @@ export const PUT: APIRoute = async ({ params, request, cookies }) => {
   }
 
   try {
-    const data = await request.json();
+    const body = await request.json();
+    const { method = 'manual', data, json } = body;
+
+    let expressionData;
+
+    // Process based on input method
+    if (method === 'json' && json) {
+      try {
+        expressionData = JSON.parse(json);
+      } catch (parseError) {
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: 'Invalid JSON format',
+            details: parseError instanceof Error ? parseError.message : 'Unknown error'
+          }),
+          { status: 400, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+    } else if (method === 'manual') {
+      expressionData = data;
+    } else {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Invalid method specified' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
     
-    const updated = await expressionsRepo.update(id, data);
+    const updated = await expressionsRepo.update(id, expressionData);
 
     if (updated) {
       return new Response(
-        JSON.stringify(updated),
+        JSON.stringify({ success: true, data: updated }),
         { status: 200, headers: { 'Content-Type': 'application/json' } }
       );
     } else {
