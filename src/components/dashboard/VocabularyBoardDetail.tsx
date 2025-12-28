@@ -5,6 +5,8 @@ import { useState, useRef, useEffect } from 'react';
 import VocabularyDetailModal from './VocabularyDetailModal';
 import AddVocabularyForm from '../admin/AddVocabularyForm';
 import ErrorDialog from './ErrorDialog';
+import DeleteVocabularyDialog from './DeleteVocabularyDialog';
+import { useAdmin } from '../../contexts/AdminContext';
 
 interface VocabularyBoardDetailProps {
   boardId: string;
@@ -48,11 +50,13 @@ async function fetchBoardWithItems(boardId: string) {
 }
 
 export default function VocabularyBoardDetail({ boardId }: VocabularyBoardDetailProps) {
+  const { isAdmin } = useAdmin();
   const [selectedVocab, setSelectedVocab] = useState<Vocabulary | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [deleteVocab, setDeleteVocab] = useState<Vocabulary | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   
   const { data, isLoading, refetch } = useQuery({
@@ -68,30 +72,39 @@ export default function VocabularyBoardDetail({ boardId }: VocabularyBoardDetail
     };
 
     if (menuOpenId) {
-      document.addEventListener('mousedown', handleClickOutside);
+      setTimeout(() => {
+        document.addEventListener('click', handleClickOutside);
+      }, 0);
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('click', handleClickOutside);
     };
   }, [menuOpenId]);
 
   const handleEdit = (vocab: Vocabulary) => {
-    console.log('handleEdit called', vocab);
     setMenuOpenId(null);
+    
+    if (!isAdmin) {
+      setErrorMessage('Bạn không có quyền chỉnh sửa vocabulary.\n\nChỉ Admin mới có thể chỉnh sửa vocabulary.');
+      setShowErrorDialog(true);
+      return;
+    }
+    
+    // Admin: mở modal xem chi tiết (tạm thời, sau này sẽ có edit form)
     setSelectedVocab(vocab);
   };
 
-  const handleDelete = async (vocab: Vocabulary) => {
-    console.log('handleDelete called', vocab);
+  const handleDelete = (vocab: Vocabulary) => {
     setMenuOpenId(null);
-    
-    if (!confirm(`Bạn có chắc chắn muốn xóa "${vocab.word}"?`)) {
-      return;
-    }
+    setDeleteVocab(vocab);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteVocab) return;
 
     try {
-      const response = await fetch(`/api/vocabulary/${vocab.id}`, {
+      const response = await fetch(`/api/vocabulary/${deleteVocab.id}`, {
         method: 'DELETE',
       });
 
@@ -105,13 +118,16 @@ export default function VocabularyBoardDetail({ boardId }: VocabularyBoardDetail
           setErrorMessage(result.error || 'Không thể xóa vocabulary');
           setShowErrorDialog(true);
         }
+        setDeleteVocab(null);
         return;
       }
 
+      setDeleteVocab(null);
       refetch();
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : 'Có lỗi xảy ra');
       setShowErrorDialog(true);
+      setDeleteVocab(null);
     }
   };
 
@@ -217,14 +233,20 @@ export default function VocabularyBoardDetail({ boardId }: VocabularyBoardDetail
                         {menuOpenId === item.id && (
                           <div className="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
                             <button
-                              onClick={() => handleEdit(item)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEdit(item);
+                              }}
                               className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
                             >
                               <Edit className="w-4 h-4" />
                               Chỉnh sửa
                             </button>
                             <button
-                              onClick={() => handleDelete(item)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDelete(item);
+                              }}
                               className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 text-red-600"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -363,6 +385,14 @@ export default function VocabularyBoardDetail({ boardId }: VocabularyBoardDetail
           title="Không có quyền"
           message={errorMessage}
           onClose={() => setShowErrorDialog(false)}
+        />
+
+        {/* Delete Vocabulary Dialog */}
+        <DeleteVocabularyDialog
+          vocabulary={deleteVocab}
+          isOpen={!!deleteVocab}
+          onClose={() => setDeleteVocab(null)}
+          onConfirm={confirmDelete}
         />
       </div>
     </div>

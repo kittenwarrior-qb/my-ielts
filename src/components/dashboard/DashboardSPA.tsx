@@ -146,6 +146,21 @@ function Sidebar({ isOpen, onClose, isAdmin, username, isLoggedIn, onLogout }: {
           )}
         </nav>
 
+        {/* Credit */}
+        <div className="border-t border-gray-200 px-4 py-3">
+          <a 
+            href="https://quocbui.dev" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="flex items-center justify-center text-xs font-black hover:opacity-80 transition-opacity"
+            style={{ color: '#4B4B4B' }}
+          >
+            <span style={{ color: '#FF6B6B' }}>Made</span>
+            <span className="mx-1">by quocbui.dev with</span>
+            <span style={{ color: '#FF6B6B' }}>❤</span>
+          </a>
+        </div>
+
         {/* User Profile Section */}
         <div className="border-t border-gray-200 p-4">
           {isLoggedIn ? (

@@ -1,18 +1,17 @@
 import type { APIRoute } from 'astro';
 import { vocabularyRepo } from '../../../lib/repositories/vocabulary';
-import { isAuthenticated } from '../../../lib/auth';
+import { isAuthenticated, requireAdmin } from '../../../lib/auth';
 
 export const PUT: APIRoute = async ({ params, request, cookies }) => {
   // Check authentication and admin role
-  const user = isAuthenticated(cookies);
-  if (!user) {
+  if (!isAuthenticated(cookies)) {
     return new Response(
       JSON.stringify({ success: false, error: 'Unauthorized' }),
       { status: 401, headers: { 'Content-Type': 'application/json' } }
     );
   }
 
-  if (user.role !== 'admin') {
+  if (!requireAdmin(cookies)) {
     return new Response(
       JSON.stringify({ success: false, error: 'Bạn không có quyền thực hiện thao tác này' }),
       { status: 403, headers: { 'Content-Type': 'application/json' } }
@@ -55,15 +54,14 @@ export const PUT: APIRoute = async ({ params, request, cookies }) => {
 
 export const DELETE: APIRoute = async ({ params, cookies }) => {
   // Check authentication and admin role
-  const user = isAuthenticated(cookies);
-  if (!user) {
+  if (!isAuthenticated(cookies)) {
     return new Response(
       JSON.stringify({ success: false, error: 'Unauthorized' }),
       { status: 401, headers: { 'Content-Type': 'application/json' } }
     );
   }
 
-  if (user.role !== 'admin') {
+  if (!requireAdmin(cookies)) {
     return new Response(
       JSON.stringify({ success: false, error: 'Bạn không có quyền thực hiện thao tác này' }),
       { status: 403, headers: { 'Content-Type': 'application/json' } }

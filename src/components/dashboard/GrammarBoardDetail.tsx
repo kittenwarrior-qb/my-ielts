@@ -7,6 +7,8 @@ import { Link } from 'react-router-dom';
 import GrammarDetailModal from './GrammarDetailModal.tsx';
 import AddGrammarForm from '../admin/AddGrammarForm';
 import ErrorDialog from './ErrorDialog';
+import DeleteGrammarDialog from './DeleteGrammarDialog';
+import { useAdmin } from '../../contexts/AdminContext';
 
 interface GrammarBoardDetailProps {
   boardId: string;
@@ -19,11 +21,13 @@ async function fetchBoard(boardId: string): Promise<Board> {
 }
 
 export default function GrammarBoardDetail({ boardId }: GrammarBoardDetailProps) {
+  const { isAdmin } = useAdmin();
   const [selectedGrammar, setSelectedGrammar] = useState<Grammar | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [deleteGrammar, setDeleteGrammar] = useState<Grammar | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   
   const { data: board, isLoading: boardLoading, refetch: refetchBoard } = useQuery({
@@ -54,18 +58,27 @@ export default function GrammarBoardDetail({ boardId }: GrammarBoardDetailProps)
 
   const handleEdit = (grammar: Grammar) => {
     setMenuOpenId(null);
+    
+    if (!isAdmin) {
+      setErrorMessage('Bạn không có quyền chỉnh sửa grammar.\n\nChỉ Admin mới có thể chỉnh sửa grammar.');
+      setShowErrorDialog(true);
+      return;
+    }
+    
+    // Admin: mở modal xem chi tiết (tạm thời, sau này sẽ có edit form)
     setSelectedGrammar(grammar);
   };
 
-  const handleDelete = async (grammar: Grammar) => {
+  const handleDelete = (grammar: Grammar) => {
     setMenuOpenId(null);
-    
-    if (!confirm(`Bạn có chắc chắn muốn xóa "${grammar.title}"?`)) {
-      return;
-    }
+    setDeleteGrammar(grammar);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteGrammar) return;
 
     try {
-      const response = await fetch(`/api/grammar/${grammar.id}`, {
+      const response = await fetch(`/api/grammar/${deleteGrammar.id}`, {
         method: 'DELETE',
       });
 
@@ -79,13 +92,16 @@ export default function GrammarBoardDetail({ boardId }: GrammarBoardDetailProps)
           setErrorMessage(result.error || 'Không thể xóa grammar');
           setShowErrorDialog(true);
         }
+        setDeleteGrammar(null);
         return;
       }
 
+      setDeleteGrammar(null);
       refetchBoard();
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : 'Có lỗi xảy ra');
       setShowErrorDialog(true);
+      setDeleteGrammar(null);
     }
   };
 
@@ -267,6 +283,14 @@ export default function GrammarBoardDetail({ boardId }: GrammarBoardDetailProps)
           title="Không có quyền"
           message={errorMessage}
           onClose={() => setShowErrorDialog(false)}
+        />
+
+        {/* Delete Grammar Dialog */}
+        <DeleteGrammarDialog
+          grammar={deleteGrammar}
+          isOpen={!!deleteGrammar}
+          onClose={() => setDeleteGrammar(null)}
+          onConfirm={confirmDelete}
         />
       </div>
     </div>
