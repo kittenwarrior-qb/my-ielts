@@ -87,10 +87,12 @@ export default function GrammarBoardDetail({ boardId }: GrammarBoardDetailProps)
           {isAdmin && (
             <button 
               onClick={() => setShowAddForm(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-white font-bold hover:shadow-lg transition-all hover:scale-105 active:scale-95 whitespace-nowrap"
-              style={{ backgroundColor: '#FF6B6B', fontSize: '1rem' }}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-white font-bold transition-all duration-150 whitespace-nowrap active:translate-y-[4px]"
+              style={{ backgroundColor: '#FF6B6B', fontSize: '1rem', boxShadow: '0 4px 0 0 #CC3333' }}
               onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#FA5252'}
               onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#FF6B6B'}
+              onMouseDown={(e) => e.currentTarget.style.boxShadow = '0 0 0 0 #CC3333'}
+              onMouseUp={(e) => e.currentTarget.style.boxShadow = '0 4px 0 0 #CC3333'}
             >
               <Plus className="w-5 h-5" />
               Thêm Grammar

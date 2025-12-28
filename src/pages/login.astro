@@ -67,10 +67,12 @@ const error = Astro.url.searchParams.get('error');
 
           <button
             type="submit"
-            class="w-full text-white font-black py-3 px-6 rounded-2xl transition-all shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
-            style="background-color: #FF6B6B;"
+            class="w-full text-white font-black py-3 px-6 rounded-2xl transition-all duration-150 active:translate-y-[4px]"
+            style="background-color: #FF6B6B; box-shadow: 0 4px 0 0 #CC3333;"
             onmouseover="this.style.backgroundColor='#FA5252'"
             onmouseout="this.style.backgroundColor='#FF6B6B'"
+            onmousedown="this.style.boxShadow='0 0 0 0 #CC3333'"
+            onmouseup="this.style.boxShadow='0 4px 0 0 #CC3333'"
           >
             Đăng nhập
           </button>

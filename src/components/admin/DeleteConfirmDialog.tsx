@@ -96,14 +96,20 @@ export default function DeleteConfirmDialog({
           <button
             onClick={onClose}
             disabled={loading}
-            className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50"
+            className="px-6 py-3 border-2 border-gray-300 rounded-lg font-bold hover:bg-gray-50 disabled:opacity-50 transition-all duration-150 active:translate-y-[4px]"
+            style={{ boxShadow: '0 4px 0 0 #9ca3af' }}
+            onMouseDown={(e) => !loading && (e.currentTarget.style.boxShadow = '0 0 0 0 #9ca3af')}
+            onMouseUp={(e) => !loading && (e.currentTarget.style.boxShadow = '0 4px 0 0 #9ca3af')}
           >
             Hủy
           </button>
           <button
             onClick={handleDelete}
             disabled={loading}
-            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:bg-red-400 flex items-center gap-2"
+            className="px-6 py-3 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 disabled:bg-red-400 flex items-center gap-2 transition-all duration-150 active:translate-y-[4px]"
+            style={{ boxShadow: '0 4px 0 0 #991b1b' }}
+            onMouseDown={(e) => !loading && (e.currentTarget.style.boxShadow = '0 0 0 0 #991b1b')}
+            onMouseUp={(e) => !loading && (e.currentTarget.style.boxShadow = '0 4px 0 0 #991b1b')}
           >
             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
             Xóa

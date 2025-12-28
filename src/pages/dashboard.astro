@@ -2,6 +2,9 @@
 // This file handles /dashboard route
 // All sub-routes are handled by [...path].astro
 import DashboardSPA from '../components/dashboard/DashboardSPA';
+import { getAdminStatus } from '../lib/auth';
+
+const adminStatus = getAdminStatus(Astro.cookies);
 ---
 
 <!doctype html>
@@ -16,7 +19,7 @@ import DashboardSPA from '../components/dashboard/DashboardSPA';
     <title>Dashboard | My IELTS</title>
   </head>
   <body>
-    <DashboardSPA client:only="react" />
+    <DashboardSPA client:only="react" isAdmin={adminStatus.isAdmin} />
   </body>
 </html>
 

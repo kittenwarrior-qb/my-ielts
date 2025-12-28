@@ -7,8 +7,8 @@ export default function Footer() {
         <div className="grid md:grid-cols-4 gap-8">
           {/* Brand */}
           <div>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">
-              my <span className="text-red-600">IELTS</span>
+            <h3 className="text-lg font-black text-gray-900 dark:text-gray-100 mb-4">
+              My <span className="text-red-600">IELTS</span>
             </h3>
             <p className="text-gray-600 dark:text-gray-400 text-sm">
               Học từ vựng IELTS hiệu quả với hệ thống quản lý từ vựng, idioms và phrases.

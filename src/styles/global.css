@@ -81,39 +81,76 @@
 }
 
 @layer components {
-  /* Duolingo-style buttons - Rounded & Friendly */
+  /* Duolingo-style 3D buttons */
   .btn {
-    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-bold transition-all duration-200;
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-bold transition-all duration-150;
     @apply focus:outline-none focus:ring-4 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
-    @apply shadow-md hover:shadow-lg active:scale-95;
     color: white;
-    font-size: 1rem; /* Larger font */
+    font-size: 1rem;
+    box-shadow: 0 4px 0 0 #CC3333;
+    transform: translateY(0);
+  }
+  
+  .btn:active {
+    box-shadow: 0 0 0 0 #CC3333;
+    transform: translateY(4px);
   }
   
   .btn-primary {
     @apply bg-[#FF6B6B] text-white hover:bg-[#FA5252] focus:ring-red-300;
+    box-shadow: 0 4px 0 0 #CC3333;
+  }
+  
+  .btn-primary:active {
+    box-shadow: 0 0 0 0 #CC3333;
   }
   
   .btn-secondary {
     @apply bg-blue-500 text-white hover:bg-blue-600 focus:ring-blue-300;
+    box-shadow: 0 4px 0 0 #1d4ed8;
+  }
+  
+  .btn-secondary:active {
+    box-shadow: 0 0 0 0 #1d4ed8;
   }
   
   .btn-success {
     @apply bg-emerald-500 text-white hover:bg-emerald-600 focus:ring-emerald-300;
+    box-shadow: 0 4px 0 0 #047857;
+  }
+  
+  .btn-success:active {
+    box-shadow: 0 0 0 0 #047857;
   }
   
   .btn-danger {
     @apply bg-red-500 text-white hover:bg-red-600 focus:ring-red-300;
+    box-shadow: 0 4px 0 0 #991b1b;
+  }
+  
+  .btn-danger:active {
+    box-shadow: 0 0 0 0 #991b1b;
   }
   
   .btn-ghost {
-    @apply bg-transparent hover:bg-gray-100 focus:ring-gray-300 shadow-none;
+    @apply bg-transparent hover:bg-gray-100 focus:ring-gray-300;
     color: #4B4B4B !important;
+    box-shadow: none;
+  }
+  
+  .btn-ghost:active {
+    transform: translateY(0);
+    box-shadow: none;
   }
   
   .btn-outline {
     @apply bg-white border-2 border-gray-300 hover:bg-gray-50 focus:ring-gray-300;
     color: #4B4B4B !important;
+    box-shadow: 0 4px 0 0 #6b7280;
+  }
+  
+  .btn-outline:active {
+    box-shadow: 0 0 0 0 #6b7280;
   }
   
   /* Input styles - Rounded & Clean */

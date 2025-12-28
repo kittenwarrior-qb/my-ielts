@@ -421,14 +421,20 @@ export default function AddVocabularyForm({ onSuccess, onCancel }: AddVocabulary
             <button
               type="button"
               onClick={onCancel}
-              className="px-6 py-2 border border-gray-300 rounded hover:bg-gray-50"
+              className="px-6 py-3 border-2 border-gray-300 rounded-lg font-bold hover:bg-gray-50 transition-all duration-150 active:translate-y-[4px]"
+              style={{ boxShadow: '0 4px 0 0 #9ca3af' }}
+              onMouseDown={(e) => e.currentTarget.style.boxShadow = '0 0 0 0 #9ca3af'}
+              onMouseUp={(e) => e.currentTarget.style.boxShadow = '0 4px 0 0 #9ca3af'}
             >
               Hủy
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-2 bg-black text-white rounded hover:bg-gray-800 disabled:bg-gray-400 flex items-center gap-2"
+              className="px-6 py-3 text-white rounded-lg font-bold hover:bg-[#FA5252] disabled:bg-gray-400 flex items-center gap-2 transition-all duration-150 active:translate-y-[4px]"
+              style={{ backgroundColor: '#FF6B6B', boxShadow: '0 4px 0 0 #CC3333' }}
+              onMouseDown={(e) => !loading && (e.currentTarget.style.boxShadow = '0 0 0 0 #CC3333')}
+              onMouseUp={(e) => !loading && (e.currentTarget.style.boxShadow = '0 4px 0 0 #CC3333')}
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               Tạo Vocabulary

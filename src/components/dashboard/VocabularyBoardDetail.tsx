@@ -10,6 +10,25 @@ interface VocabularyBoardDetailProps {
   boardId: string;
 }
 
+// Map part of speech to abbreviations
+function abbreviatePartOfSpeech(pos: string): string {
+  const mapping: Record<string, string> = {
+    'adjective': 'adj',
+    'verb': 'v',
+    'noun': 'n',
+    'adverb': 'adv',
+    'pronoun': 'pron',
+    'preposition': 'prep',
+    'conjunction': 'conj',
+    'interjection': 'interj',
+    'determiner': 'det',
+    'article': 'art',
+  };
+  
+  const lower = pos.toLowerCase();
+  return mapping[lower] || pos;
+}
+
 async function fetchBoardWithItems(boardId: string) {
   const [boardRes, vocabRes] = await Promise.all([
     fetch(`/api/boards/${boardId}`),
@@ -75,10 +94,16 @@ export default function VocabularyBoardDetail({ boardId }: VocabularyBoardDetail
           {isAdmin && (
             <button 
               onClick={() => setShowAddForm(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-white font-bold hover:shadow-lg transition-all hover:scale-105 active:scale-95 whitespace-nowrap"
-              style={{ backgroundColor: '#FF6B6B', fontSize: '1rem' }}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-white font-bold transition-all duration-150 whitespace-nowrap active:translate-y-[4px]"
+              style={{ 
+                backgroundColor: '#FF6B6B', 
+                fontSize: '1rem',
+                boxShadow: '0 4px 0 0 #CC3333'
+              }}
               onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#FA5252'}
               onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#FF6B6B'}
+              onMouseDown={(e) => e.currentTarget.style.boxShadow = '0 0 0 0 #CC3333'}
+              onMouseUp={(e) => e.currentTarget.style.boxShadow = '0 4px 0 0 #CC3333'}
             >
               <Plus className="w-5 h-5" />
               Thêm Vocabulary
@@ -91,10 +116,10 @@ export default function VocabularyBoardDetail({ boardId }: VocabularyBoardDetail
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-4 py-4 text-left text-sm font-bold text-gray-600 uppercase">Thuật ngữ</th>
-                <th className="px-4 py-4 text-left text-sm font-bold text-gray-600 uppercase">Cách đọc</th>
+                <th className="px-4 py-4 text-left text-sm font-bold text-gray-600 uppercase">Từ ngữ</th>
+                <th className="px-4 py-4 text-left text-sm font-bold text-gray-600 uppercase">Loại từ</th>
+                <th className="px-4 py-4 text-left text-sm font-bold text-gray-600 uppercase">Phiên âm</th>
                 <th className="px-4 py-4 text-left text-sm font-bold text-gray-600 uppercase">Ý nghĩa</th>
-                <th className="px-4 py-4 text-left text-sm font-bold text-gray-600 uppercase">Giải thích</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -102,6 +127,7 @@ export default function VocabularyBoardDetail({ boardId }: VocabularyBoardDetail
                 const types = item.types as any;
                 const firstType = Array.isArray(types) ? types[0] : null;
                 const firstMeaning = firstType?.meanings?.[0] || '';
+                const partOfSpeech = firstType?.type ? abbreviatePartOfSpeech(firstType.type) : '-';
                 
                 return (
                   <tr key={item.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => setSelectedVocab(item)}>
@@ -111,13 +137,13 @@ export default function VocabularyBoardDetail({ boardId }: VocabularyBoardDetail
                       </span>
                     </td>
                     <td className="px-4 py-4 text-base text-gray-600">
+                      {partOfSpeech}
+                    </td>
+                    <td className="px-4 py-4 text-base text-gray-600">
                       {item.phonetic}
                     </td>
                     <td className="px-4 py-4 text-base">
                       {firstMeaning}
-                    </td>
-                    <td className="px-4 py-4 text-base text-gray-600">
-                      {item.grammar || '-'}
                     </td>
                   </tr>
                 );

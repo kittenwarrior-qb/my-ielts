@@ -1,11 +1,6 @@
 ---
 import DashboardSPA from '../../components/dashboard/DashboardSPA';
-import { getAdminStatus, isAuthenticated } from '../../lib/auth';
-
-// Redirect to login if not authenticated
-if (!isAuthenticated(Astro.cookies)) {
-  return Astro.redirect('/login');
-}
+import { getAdminStatus } from '../../lib/auth';
 
 const adminStatus = getAdminStatus(Astro.cookies);
 ---
