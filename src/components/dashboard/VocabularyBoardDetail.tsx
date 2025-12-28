@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import type { Board, Vocabulary } from '@/lib/db/schema';
-import { Plus } from 'lucide-react';
-import { useState } from 'react';
+import { Plus, MoreVertical, Edit, Trash2 } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
 import VocabularyDetailModal from './VocabularyDetailModal';
 import AddVocabularyForm from '../admin/AddVocabularyForm';
-import { useAdmin } from '../../contexts/AdminContext';
+import ErrorDialog from './ErrorDialog';
 
 interface VocabularyBoardDetailProps {
   boardId: string;
@@ -50,12 +50,68 @@ async function fetchBoardWithItems(boardId: string) {
 export default function VocabularyBoardDetail({ boardId }: VocabularyBoardDetailProps) {
   const [selectedVocab, setSelectedVocab] = useState<Vocabulary | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
-  const { isAdmin } = useAdmin();
+  const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
+  const [showErrorDialog, setShowErrorDialog] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const menuRef = useRef<HTMLDivElement>(null);
   
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['board-detail', boardId],
     queryFn: () => fetchBoardWithItems(boardId),
   });
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuOpenId(null);
+      }
+    };
+
+    if (menuOpenId) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [menuOpenId]);
+
+  const handleEdit = (vocab: Vocabulary) => {
+    setMenuOpenId(null);
+    setSelectedVocab(vocab);
+  };
+
+  const handleDelete = async (vocab: Vocabulary) => {
+    setMenuOpenId(null);
+    
+    if (!confirm(`Bạn có chắc chắn muốn xóa "${vocab.word}"?`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/vocabulary/${vocab.id}`, {
+        method: 'DELETE',
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        if (response.status === 401 || response.status === 403) {
+          setErrorMessage(result.error || 'Bạn không có quyền thực hiện thao tác này');
+          setShowErrorDialog(true);
+        } else {
+          setErrorMessage(result.error || 'Không thể xóa vocabulary');
+          setShowErrorDialog(true);
+        }
+        return;
+      }
+
+      refetch();
+    } catch (err) {
+      setErrorMessage(err instanceof Error ? err.message : 'Có lỗi xảy ra');
+      setShowErrorDialog(true);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -118,6 +174,7 @@ export default function VocabularyBoardDetail({ boardId }: VocabularyBoardDetail
                 <th className="px-4 py-4 text-left text-sm font-bold text-gray-600 uppercase">Loại từ</th>
                 <th className="px-4 py-4 text-left text-sm font-bold text-gray-600 uppercase">Phiên âm</th>
                 <th className="px-4 py-4 text-left text-sm font-bold text-gray-600 uppercase">Ý nghĩa</th>
+                <th className="px-4 py-4 w-12"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -128,20 +185,52 @@ export default function VocabularyBoardDetail({ boardId }: VocabularyBoardDetail
                 const partOfSpeech = firstType?.type ? abbreviatePartOfSpeech(firstType.type) : '-';
                 
                 return (
-                  <tr key={item.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => setSelectedVocab(item)}>
-                    <td className="px-4 py-4">
-                      <span className="hover:underline font-bold text-lg">
+                  <tr key={item.id} className="hover:bg-gray-50 group">
+                    <td className="px-4 py-4" onClick={() => setSelectedVocab(item)}>
+                      <span className="hover:underline font-bold text-lg cursor-pointer">
                         {item.word}
                       </span>
                     </td>
-                    <td className="px-4 py-4 text-base text-gray-600">
+                    <td className="px-4 py-4 text-base text-gray-600" onClick={() => setSelectedVocab(item)}>
                       {partOfSpeech}
                     </td>
-                    <td className="px-4 py-4 text-base text-gray-600">
+                    <td className="px-4 py-4 text-base text-gray-600" onClick={() => setSelectedVocab(item)}>
                       {item.phonetic}
                     </td>
-                    <td className="px-4 py-4 text-base">
+                    <td className="px-4 py-4 text-base" onClick={() => setSelectedVocab(item)}>
                       {firstMeaning}
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="relative" ref={menuOpenId === item.id ? menuRef : null}>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setMenuOpenId(menuOpenId === item.id ? null : item.id);
+                          }}
+                          className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-200 rounded transition-opacity"
+                        >
+                          <MoreVertical className="w-5 h-5 text-gray-600" />
+                        </button>
+
+                        {menuOpenId === item.id && (
+                          <div className="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
+                            <button
+                              onClick={() => handleEdit(item)}
+                              className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                            >
+                              <Edit className="w-4 h-4" />
+                              Chỉnh sửa
+                            </button>
+                            <button
+                              onClick={() => handleDelete(item)}
+                              className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 text-red-600"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              Xóa
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );
@@ -166,37 +255,70 @@ export default function VocabularyBoardDetail({ boardId }: VocabularyBoardDetail
             return (
               <div
                 key={item.id}
-                onClick={() => setSelectedVocab(item)}
-                className="bg-white rounded-xl p-5 shadow-sm border border-gray-200 active:bg-gray-50 cursor-pointer"
+                className="bg-white rounded-xl p-5 shadow-sm border border-gray-200 relative group"
               >
-                {/* Word + Audio */}
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <h3 className="text-2xl font-bold mb-1">{item.word}</h3>
-                    <p className="text-base text-gray-500">{item.phonetic}</p>
-                  </div>
-                  {item.audioUrl && (
-                    <button className="p-2 hover:bg-gray-100 rounded-lg">
-                      <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-                      </svg>
-                    </button>
+                {/* Three dots menu */}
+                <div className="absolute top-4 right-4" ref={menuOpenId === item.id ? menuRef : null}>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setMenuOpenId(menuOpenId === item.id ? null : item.id);
+                    }}
+                    className="p-1 hover:bg-gray-200 rounded transition-opacity"
+                  >
+                    <MoreVertical className="w-5 h-5 text-gray-600" />
+                  </button>
+
+                  {menuOpenId === item.id && (
+                    <div className="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
+                      <button
+                        onClick={() => handleEdit(item)}
+                        className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                      >
+                        <Edit className="w-4 h-4" />
+                        Chỉnh sửa
+                      </button>
+                      <button
+                        onClick={() => handleDelete(item)}
+                        className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 text-red-600"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Xóa
+                      </button>
+                    </div>
                   )}
                 </div>
 
-                {/* Meaning */}
-                <div className="mb-3">
-                  <p className="text-lg leading-relaxed">{firstMeaning}</p>
-                </div>
-
-                {/* Grammar Note */}
-                {item.grammar && (
-                  <div className="pt-3 border-t border-gray-100">
-                    <span className="inline-block px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium">
-                      {item.grammar}
-                    </span>
+                <div onClick={() => setSelectedVocab(item)} className="cursor-pointer">
+                  {/* Word + Audio */}
+                  <div className="flex items-start justify-between mb-3 pr-8">
+                    <div className="flex-1">
+                      <h3 className="text-2xl font-bold mb-1">{item.word}</h3>
+                      <p className="text-base text-gray-500">{item.phonetic}</p>
+                    </div>
+                    {item.audioUrl && (
+                      <button className="p-2 hover:bg-gray-100 rounded-lg">
+                        <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                        </svg>
+                      </button>
+                    )}
                   </div>
-                )}
+
+                  {/* Meaning */}
+                  <div className="mb-3">
+                    <p className="text-lg leading-relaxed">{firstMeaning}</p>
+                  </div>
+
+                  {/* Grammar Note */}
+                  {item.grammar && (
+                    <div className="pt-3 border-t border-gray-100">
+                      <span className="inline-block px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium">
+                        {item.grammar}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
             );
           })}
@@ -219,7 +341,6 @@ export default function VocabularyBoardDetail({ boardId }: VocabularyBoardDetail
             vocabulary={selectedVocab}
             isOpen={!!selectedVocab}
             onClose={() => setSelectedVocab(null)}
-            isAdmin={isAdmin}
           />
         )}
 
@@ -233,6 +354,14 @@ export default function VocabularyBoardDetail({ boardId }: VocabularyBoardDetail
             onCancel={() => setShowAddForm(false)}
           />
         )}
+
+        {/* Error Dialog */}
+        <ErrorDialog
+          isOpen={showErrorDialog}
+          title="Không có quyền"
+          message={errorMessage}
+          onClose={() => setShowErrorDialog(false)}
+        />
       </div>
     </div>
   );

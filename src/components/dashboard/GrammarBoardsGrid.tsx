@@ -1,7 +1,6 @@
 import { useBoards } from '../../hooks/useData';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
-import { useAdmin } from '../../contexts/AdminContext';
 import CreateBoardModal from './CreateBoardModal';
 import EditBoardModal from './EditBoardModal';
 import DeleteBoardDialog from './DeleteBoardDialog';
@@ -17,7 +16,6 @@ interface Board {
 
 export default function GrammarBoardsGrid() {
   const { data: boards, isLoading, refetch } = useBoards('grammar');
-  const { isAdmin } = useAdmin();
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editBoard, setEditBoard] = useState<Board | null>(null);
   const [deleteBoard, setDeleteBoard] = useState<Board | null>(null);
@@ -75,7 +73,6 @@ export default function GrammarBoardsGrid() {
               key={board.id}
               board={board}
               linkTo={`/dashboard/grammar/${board.id}`}
-              isAdmin={isAdmin}
               onEdit={setEditBoard}
               onDelete={setDeleteBoard}
             />

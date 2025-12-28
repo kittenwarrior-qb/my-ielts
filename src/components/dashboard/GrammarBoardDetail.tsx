@@ -1,12 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { useGrammarByIds } from '../../hooks/useData';
 import type { Board, Grammar } from '@/lib/db/schema';
-import { Plus, ArrowLeft } from 'lucide-react';
-import { useState } from 'react';
+import { Plus, ArrowLeft, MoreVertical, Edit, Trash2 } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import GrammarDetailModal from './GrammarDetailModal.tsx';
 import AddGrammarForm from '../admin/AddGrammarForm';
-import { useAdmin } from '../../contexts/AdminContext';
+import ErrorDialog from './ErrorDialog';
 
 interface GrammarBoardDetailProps {
   boardId: string;
@@ -21,7 +21,10 @@ async function fetchBoard(boardId: string): Promise<Board> {
 export default function GrammarBoardDetail({ boardId }: GrammarBoardDetailProps) {
   const [selectedGrammar, setSelectedGrammar] = useState<Grammar | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
-  const { isAdmin } = useAdmin();
+  const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
+  const [showErrorDialog, setShowErrorDialog] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const menuRef = useRef<HTMLDivElement>(null);
   
   const { data: board, isLoading: boardLoading, refetch: refetchBoard } = useQuery({
     queryKey: ['board', boardId],
@@ -32,6 +35,59 @@ export default function GrammarBoardDetail({ boardId }: GrammarBoardDetailProps)
   const { data: grammarItems, isLoading: itemsLoading } = useGrammarByIds(itemIds);
 
   const isLoading = boardLoading || itemsLoading;
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuOpenId(null);
+      }
+    };
+
+    if (menuOpenId) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [menuOpenId]);
+
+  const handleEdit = (grammar: Grammar) => {
+    setMenuOpenId(null);
+    setSelectedGrammar(grammar);
+  };
+
+  const handleDelete = async (grammar: Grammar) => {
+    setMenuOpenId(null);
+    
+    if (!confirm(`Bạn có chắc chắn muốn xóa "${grammar.title}"?`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/grammar/${grammar.id}`, {
+        method: 'DELETE',
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        if (response.status === 401 || response.status === 403) {
+          setErrorMessage(result.error || 'Bạn không có quyền thực hiện thao tác này');
+          setShowErrorDialog(true);
+        } else {
+          setErrorMessage(result.error || 'Không thể xóa grammar');
+          setShowErrorDialog(true);
+        }
+        return;
+      }
+
+      refetchBoard();
+    } catch (err) {
+      setErrorMessage(err instanceof Error ? err.message : 'Có lỗi xảy ra');
+      setShowErrorDialog(true);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -103,40 +159,73 @@ export default function GrammarBoardDetail({ boardId }: GrammarBoardDetailProps)
           {grammarItems?.map((item) => (
             <div
               key={item.id}
-              onClick={() => setSelectedGrammar(item)}
-              className="border border-gray-200 bg-white p-6 hover:bg-gray-50 cursor-pointer transition-colors"
+              className="border border-gray-200 bg-white p-6 hover:bg-gray-50 transition-colors relative group"
             >
-              <div className="flex items-start justify-between mb-3">
-                <h3 className="font-semibold text-black text-lg">{item.title}</h3>
-                <span className={`px-2 py-1 text-xs font-medium rounded ${getLevelColor(item.level)}`}>
-                  {item.level}
-                </span>
-              </div>
-              
-              <div className="bg-gray-50 p-3 rounded mb-3">
-                <code className="text-sm text-gray-700 font-mono">
-                  {item.structure.length > 80 ? item.structure.substring(0, 80) + '...' : item.structure}
-                </code>
+              {/* Three dots menu */}
+              <div className="absolute top-4 right-4" ref={menuOpenId === item.id ? menuRef : null}>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setMenuOpenId(menuOpenId === item.id ? null : item.id);
+                  }}
+                  className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-200 rounded transition-opacity"
+                >
+                  <MoreVertical className="w-5 h-5 text-gray-600" />
+                </button>
+
+                {menuOpenId === item.id && (
+                  <div className="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
+                    <button
+                      onClick={() => handleEdit(item)}
+                      className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                    >
+                      <Edit className="w-4 h-4" />
+                      Chỉnh sửa
+                    </button>
+                    <button
+                      onClick={() => handleDelete(item)}
+                      className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 text-red-600"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Xóa
+                    </button>
+                  </div>
+                )}
               </div>
 
-              <p className="text-sm text-gray-600 line-clamp-2 mb-3">
-                {item.explanation}
-              </p>
-
-              {item.topics && Array.isArray(item.topics) && item.topics.length > 0 ? (
-                <div className="flex flex-wrap gap-1">
-                  {(item.topics as string[]).slice(0, 3).map((topic: string, idx: number) => (
-                    <span key={idx} className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded">
-                      {topic}
-                    </span>
-                  ))}
-                  {(item.topics as string[]).length > 3 && (
-                    <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
-                      +{(item.topics as string[]).length - 3}
-                    </span>
-                  )}
+              <div onClick={() => setSelectedGrammar(item)} className="cursor-pointer pr-8">
+                <div className="flex items-start justify-between mb-3">
+                  <h3 className="font-semibold text-black text-lg">{item.title}</h3>
+                  <span className={`px-2 py-1 text-xs font-medium rounded ${getLevelColor(item.level)}`}>
+                    {item.level}
+                  </span>
                 </div>
-              ) : null}
+                
+                <div className="bg-gray-50 p-3 rounded mb-3">
+                  <code className="text-sm text-gray-700 font-mono">
+                    {item.structure.length > 80 ? item.structure.substring(0, 80) + '...' : item.structure}
+                  </code>
+                </div>
+
+                <p className="text-sm text-gray-600 line-clamp-2 mb-3">
+                  {item.explanation}
+                </p>
+
+                {item.topics && Array.isArray(item.topics) && item.topics.length > 0 ? (
+                  <div className="flex flex-wrap gap-1">
+                    {(item.topics as string[]).slice(0, 3).map((topic: string, idx: number) => (
+                      <span key={idx} className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded">
+                        {topic}
+                      </span>
+                    ))}
+                    {(item.topics as string[]).length > 3 && (
+                      <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
+                        +{(item.topics as string[]).length - 3}
+                      </span>
+                    )}
+                  </div>
+                ) : null}
+              </div>
             </div>
           ))}
         </div>
@@ -171,6 +260,14 @@ export default function GrammarBoardDetail({ boardId }: GrammarBoardDetailProps)
             onCancel={() => setShowAddForm(false)}
           />
         )}
+
+        {/* Error Dialog */}
+        <ErrorDialog
+          isOpen={showErrorDialog}
+          title="Không có quyền"
+          message={errorMessage}
+          onClose={() => setShowErrorDialog(false)}
+        />
       </div>
     </div>
   );

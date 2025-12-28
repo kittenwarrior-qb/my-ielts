@@ -54,7 +54,6 @@ export default function EditBoardModal({ board, isOpen, onClose, onSuccess }: Ed
         if (response.status === 401 || response.status === 403) {
           setErrorDialogMessage(result.error || 'Bạn không có quyền thực hiện thao tác này');
           setShowErrorDialog(true);
-          onClose();
         } else {
           setError(result.error || 'Failed to update board');
         }
@@ -148,7 +147,10 @@ export default function EditBoardModal({ board, isOpen, onClose, onSuccess }: Ed
         isOpen={showErrorDialog}
         title="Không có quyền"
         message={errorDialogMessage}
-        onClose={() => setShowErrorDialog(false)}
+        onClose={() => {
+          setShowErrorDialog(false);
+          onClose();
+        }}
       />
     </div>
   );

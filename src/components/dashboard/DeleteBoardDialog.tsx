@@ -35,7 +35,6 @@ export default function DeleteBoardDialog({ board, isOpen, onClose, onConfirm }:
         if (response.status === 401 || response.status === 403) {
           setErrorDialogMessage(result.error || 'Bạn không có quyền thực hiện thao tác này');
           setShowErrorDialog(true);
-          onClose();
         } else {
           setErrorDialogMessage(result.error || 'Không thể xóa board');
           setShowErrorDialog(true);

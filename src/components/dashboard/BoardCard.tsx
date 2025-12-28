@@ -13,12 +13,11 @@ interface Board {
 interface BoardCardProps {
   board: Board;
   linkTo: string;
-  isAdmin: boolean;
   onEdit: (board: Board) => void;
   onDelete: (board: Board) => void;
 }
 
-export default function BoardCard({ board, linkTo, isAdmin, onEdit, onDelete }: BoardCardProps) {
+export default function BoardCard({ board, linkTo, onEdit, onDelete }: BoardCardProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
