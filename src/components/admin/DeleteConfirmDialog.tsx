@@ -96,8 +96,10 @@ export default function DeleteConfirmDialog({
           <button
             onClick={onClose}
             disabled={loading}
-            className="px-6 py-3 border-2 border-gray-300 rounded-lg font-bold hover:bg-gray-50 disabled:opacity-50 transition-all duration-150 active:translate-y-[4px]"
-            style={{ boxShadow: '0 4px 0 0 #9ca3af' }}
+            className="px-6 py-3 border-2 border-gray-300 rounded-lg font-bold disabled:opacity-50 transition-all duration-150 active:translate-y-[4px]"
+            style={{ boxShadow: '0 4px 0 0 #9ca3af', backgroundColor: 'white' }}
+            onMouseOver={(e) => !loading && (e.currentTarget.style.backgroundColor = '#f9fafb')}
+            onMouseOut={(e) => !loading && (e.currentTarget.style.backgroundColor = 'white')}
             onMouseDown={(e) => !loading && (e.currentTarget.style.boxShadow = '0 0 0 0 #9ca3af')}
             onMouseUp={(e) => !loading && (e.currentTarget.style.boxShadow = '0 4px 0 0 #9ca3af')}
           >
@@ -106,8 +108,10 @@ export default function DeleteConfirmDialog({
           <button
             onClick={handleDelete}
             disabled={loading}
-            className="px-6 py-3 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 disabled:bg-red-400 flex items-center gap-2 transition-all duration-150 active:translate-y-[4px]"
-            style={{ boxShadow: '0 4px 0 0 #991b1b' }}
+            className="px-6 py-3 text-white rounded-lg font-bold disabled:bg-red-400 flex items-center gap-2 transition-all duration-150 active:translate-y-[4px]"
+            style={{ backgroundColor: '#dc2626', boxShadow: '0 4px 0 0 #991b1b' }}
+            onMouseOver={(e) => !loading && (e.currentTarget.style.backgroundColor = '#b91c1c')}
+            onMouseOut={(e) => !loading && (e.currentTarget.style.backgroundColor = '#dc2626')}
             onMouseDown={(e) => !loading && (e.currentTarget.style.boxShadow = '0 0 0 0 #991b1b')}
             onMouseUp={(e) => !loading && (e.currentTarget.style.boxShadow = '0 4px 0 0 #991b1b')}
           >

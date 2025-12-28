@@ -1,11 +1,26 @@
 import { useBoards } from '../../hooks/useData';
-import { Link } from 'react-router-dom';
-import { MoreVertical, Trash2 } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useState } from 'react';
+import { useAdmin } from '../../contexts/AdminContext';
+import CreateBoardModal from './CreateBoardModal';
+import EditBoardModal from './EditBoardModal';
+import DeleteBoardDialog from './DeleteBoardDialog';
+import BoardCard from './BoardCard';
+
+interface Board {
+  id: string;
+  name: string;
+  description: string | null;
+  type: string;
+  itemIds: unknown;
+}
 
 export default function ExpressionsBoardsGrid() {
-  const { data: boards, isLoading } = useBoards('idioms');
-  const [menuOpen, setMenuOpen] = useState<string | null>(null);
+  const { data: boards, isLoading, refetch } = useBoards('idioms');
+  const { isAdmin } = useAdmin();
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [editBoard, setEditBoard] = useState<Board | null>(null);
+  const [deleteBoard, setDeleteBoard] = useState<Board | null>(null);
 
   if (isLoading) {
     return (
@@ -24,62 +39,46 @@ export default function ExpressionsBoardsGrid() {
     );
   }
 
-  const handleDelete = async (boardId: string) => {
-    if (confirm('Bạn có chắc muốn xóa board này?')) {
-      // TODO: Implement delete with admin check
-      console.log('Delete board:', boardId);
-    }
-  };
-
   return (
     <div className="p-8">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-2">Expressions Boards</h1>
-          <p className="text-gray-600">Quản lý bộ thành ngữ và cụm từ của bạn</p>
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Expressions Boards</h1>
+            <p className="text-gray-600">Quản lý bộ thành ngữ và cụm từ của bạn</p>
+          </div>
+          <button
+            onClick={() => setCreateModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-white font-bold transition-all duration-150 active:translate-y-[4px]"
+            style={{ backgroundColor: '#FF6B6B', boxShadow: '0 4px 0 0 #CC3333' }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.backgroundColor = '#FA5252';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.backgroundColor = '#FF6B6B';
+            }}
+            onMouseDown={(e) => {
+              e.currentTarget.style.boxShadow = '0 0 0 0 #CC3333';
+            }}
+            onMouseUp={(e) => {
+              e.currentTarget.style.boxShadow = '0 4px 0 0 #CC3333';
+            }}
+          >
+            <Plus className="w-5 h-5" />
+            Tạo bộ từ mới
+          </button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {boards?.map((board) => (
-            <div key={board.id} className="relative group">
-              <Link
-                to={`/dashboard/expressions/${board.id}`}
-                className="block border border-gray-200 bg-white p-6 hover:bg-gray-50 transition-colors"
-              >
-                <h3 className="font-semibold text-black mb-2">{board.name}</h3>
-                <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                  {board.description || 'Không có mô tả'}
-                </p>
-                <div className="text-xs text-gray-500">
-                  {(board.itemIds as string[]).length} expressions
-                </div>
-              </Link>
-              
-              {/* Settings Menu */}
-              <div className="absolute top-2 right-2">
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setMenuOpen(menuOpen === board.id ? null : board.id);
-                  }}
-                  className="p-1 rounded hover:bg-gray-200 opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <MoreVertical className="w-4 h-4" />
-                </button>
-                
-                {menuOpen === board.id && (
-                  <div className="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded shadow-lg z-10">
-                    <button
-                      onClick={() => handleDelete(board.id)}
-                      className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-50 flex items-center gap-2"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      Xóa board
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
+            <BoardCard
+              key={board.id}
+              board={board}
+              linkTo={`/dashboard/expressions/${board.id}`}
+              isAdmin={isAdmin}
+              onEdit={setEditBoard}
+              onDelete={setDeleteBoard}
+            />
           ))}
         </div>
 
@@ -90,6 +89,37 @@ export default function ExpressionsBoardsGrid() {
           </div>
         )}
       </div>
+
+      {/* Modals */}
+      <CreateBoardModal
+        type="idioms"
+        isOpen={createModalOpen}
+        onClose={() => setCreateModalOpen(false)}
+        onSuccess={() => {
+          setCreateModalOpen(false);
+          refetch();
+        }}
+      />
+
+      <EditBoardModal
+        board={editBoard}
+        isOpen={!!editBoard}
+        onClose={() => setEditBoard(null)}
+        onSuccess={() => {
+          setEditBoard(null);
+          refetch();
+        }}
+      />
+
+      <DeleteBoardDialog
+        board={deleteBoard}
+        isOpen={!!deleteBoard}
+        onClose={() => setDeleteBoard(null)}
+        onConfirm={() => {
+          setDeleteBoard(null);
+          refetch();
+        }}
+      />
     </div>
   );
 }

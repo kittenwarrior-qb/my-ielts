@@ -12,12 +12,13 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     }
 
     // Verify credentials
-    if (!verifyCredentials(username, password)) {
+    const { isValid, isAdmin } = verifyCredentials(username, password);
+    if (!isValid) {
       return redirect('/login?error=invalid');
     }
 
-    // Create session
-    const token = createSessionToken();
+    // Create session with user info
+    const token = createSessionToken(username, isAdmin);
     setSessionCookie(cookies, token);
 
     // Redirect to dashboard

@@ -10,6 +10,7 @@ import GrammarBoardsGrid from './GrammarBoardsGrid';
 import ExpressionsBoardsGrid from './ExpressionsBoardsGrid';
 import GrammarBoardDetail from './GrammarBoardDetail';
 import ExpressionsBoardDetail from './ExpressionsBoardDetail';
+import LogoutConfirmDialog from './LogoutConfirmDialog';
 import { Home, BookOpen, FileText, MessageSquare, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 
@@ -31,12 +32,13 @@ async function fetchUserData(): Promise<UserData> {
   return response.json();
 }
 
-function Sidebar({ isOpen, onClose, isAdmin, username, isLoggedIn }: { 
+function Sidebar({ isOpen, onClose, isAdmin, username, isLoggedIn, onLogout }: { 
   isOpen: boolean; 
   onClose: () => void;
   isAdmin?: boolean;
   username?: string;
   isLoggedIn?: boolean;
+  onLogout?: () => void;
 }) {
   const location = useLocation();
   const currentPath = location.pathname;
@@ -138,17 +140,6 @@ function Sidebar({ isOpen, onClose, isAdmin, username, isLoggedIn }: {
               <div className="px-3 py-2 mb-2">
                 <span className="text-xs font-semibold text-gray-500 uppercase">Boards</span>
               </div>
-              
-              <button 
-                className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-600 rounded hover:bg-gray-50 text-left mb-2"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-                </svg>
-                Tạo bộ từ mới
-              </button>
-
-              <div className="border-t border-gray-200 my-2"></div>
 
               <BoardsList type={boardType} />
             </div>
@@ -169,7 +160,7 @@ function Sidebar({ isOpen, onClose, isAdmin, username, isLoggedIn }: {
                 <p className="text-xs text-gray-500">{isAdmin ? 'Admin' : 'User'}</p>
               </div>
               <button 
-                onClick={() => window.location.href = '/api/auth/logout'}
+                onClick={onLogout}
                 className="p-2 hover:bg-gray-100 rounded-lg"
                 title="Đăng xuất"
               >
@@ -206,11 +197,163 @@ function Sidebar({ isOpen, onClose, isAdmin, username, isLoggedIn }: {
 }
 
 function DashboardHome() {
+  const { data: grammarBoards = [] } = useQuery({
+    queryKey: ['boards', 'grammar'],
+    queryFn: async () => {
+      const response = await fetch('/api/boards?type=grammar');
+      if (!response.ok) throw new Error('Failed to fetch grammar boards');
+      return response.json();
+    },
+  });
+
+  const { data: vocabularyBoards = [] } = useQuery({
+    queryKey: ['boards', 'vocabulary'],
+    queryFn: async () => {
+      const response = await fetch('/api/boards?type=vocabulary');
+      if (!response.ok) throw new Error('Failed to fetch vocabulary boards');
+      return response.json();
+    },
+  });
+
+  const { data: idiomsBoards = [] } = useQuery({
+    queryKey: ['boards', 'idioms'],
+    queryFn: async () => {
+      const response = await fetch('/api/boards?type=idioms');
+      if (!response.ok) throw new Error('Failed to fetch idioms boards');
+      return response.json();
+    },
+  });
+
+  const stats = [
+    {
+      title: 'Grammar',
+      count: grammarBoards.length,
+      icon: <BookOpen className="w-8 h-8" />,
+      link: '/dashboard/grammar',
+      bgColor: 'bg-blue-50',
+      textColor: 'text-blue-600',
+      hoverBorder: 'hover:border-blue-300',
+    },
+    {
+      title: 'Vocabulary',
+      count: vocabularyBoards.length,
+      icon: <FileText className="w-8 h-8" />,
+      link: '/dashboard/vocabulary',
+      bgColor: 'bg-green-50',
+      textColor: 'text-green-600',
+      hoverBorder: 'hover:border-green-300',
+    },
+    {
+      title: 'Idioms',
+      count: idiomsBoards.length,
+      icon: <MessageSquare className="w-8 h-8" />,
+      link: '/dashboard/expressions',
+      bgColor: 'bg-amber-50',
+      textColor: 'text-amber-600',
+      hoverBorder: 'hover:border-amber-300',
+    },
+  ];
+
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold mb-4">Dashboard</h1>
-        <p className="text-xl text-gray-600">Welcome back! Continue your IELTS learning journey.</p>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2 text-gray-900">Dashboard</h1>
+          <p className="text-lg text-gray-600">Chào mừng trở lại! Tiếp tục hành trình học IELTS của bạn.</p>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {stats.map((stat) => (
+            <Link
+              key={stat.title}
+              to={stat.link}
+              className="bg-white rounded border border-gray-200 p-6 hover:bg-gray-50 transition-colors duration-200"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className={`${stat.bgColor} ${stat.textColor} p-3 rounded-lg`}>
+                  {stat.icon}
+                </div>
+                <div className="text-right">
+                  <div className={`text-3xl font-bold ${stat.textColor}`}>
+                    {stat.count}
+                  </div>
+                  <div className="text-sm text-gray-500">boards</div>
+                </div>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900">{stat.title}</h3>
+            </Link>
+          ))}
+        </div>
+
+        {/* Progress Section */}
+        <div className="bg-white rounded border border-gray-200 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold text-gray-900">Tiến độ học tập</h2>
+            <span className="px-3 py-1 bg-gray-200 text-gray-700 text-sm font-semibold rounded-full">
+              Coming Soon
+            </span>
+          </div>
+          
+          <div className="space-y-6">
+            {/* Grammar Progress */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <BookOpen className="w-5 h-5 text-gray-900" />
+                  <span className="font-semibold text-gray-900">Grammar</span>
+                </div>
+                <span className="text-sm text-gray-500">0 / {grammarBoards.length} boards</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-3">
+                <div 
+                  className="bg-gray-900 h-3 rounded-full transition-all duration-300"
+                  style={{ width: '0%' }}
+                ></div>
+              </div>
+            </div>
+
+            {/* Vocabulary Progress */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-gray-900" />
+                  <span className="font-semibold text-gray-900">Vocabulary</span>
+                </div>
+                <span className="text-sm text-gray-500">0 / {vocabularyBoards.length} boards</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-3">
+                <div 
+                  className="bg-gray-900 h-3 rounded-full transition-all duration-300"
+                  style={{ width: '0%' }}
+                ></div>
+              </div>
+            </div>
+
+            {/* Idioms Progress */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="w-5 h-5 text-gray-900" />
+                  <span className="font-semibold text-gray-900">Idioms</span>
+                </div>
+                <span className="text-sm text-gray-500">0 / {idiomsBoards.length} boards</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-3">
+                <div 
+                  className="bg-gray-900 h-3 rounded-full transition-all duration-300"
+                  style={{ width: '0%' }}
+                ></div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+            <p className="text-sm text-gray-600 text-center">
+              Tính năng theo dõi tiến độ đang được phát triển. Sẽ sớm ra mắt!
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -233,6 +376,7 @@ function ExpressionsBoardPage() {
 
 function DashboardContent({ initialIsAdmin }: { initialIsAdmin: boolean }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   
   // Fetch user data from API
   const { data: userData } = useQuery({
@@ -245,6 +389,14 @@ function DashboardContent({ initialIsAdmin }: { initialIsAdmin: boolean }) {
   const username = userData?.username ?? undefined;
   const isLoggedIn = userData?.isLoggedIn ?? false;
 
+  const handleLogout = () => {
+    setLogoutDialogOpen(true);
+  };
+
+  const confirmLogout = () => {
+    window.location.href = '/api/auth/logout';
+  };
+
   return (
     <AdminProvider isAdmin={isAdmin}>
       <DataPrefetcher />
@@ -256,6 +408,7 @@ function DashboardContent({ initialIsAdmin }: { initialIsAdmin: boolean }) {
             isAdmin={isAdmin}
             username={username}
             isLoggedIn={isLoggedIn}
+            onLogout={handleLogout}
           />
           
           {/* Mobile Header */}
@@ -282,6 +435,13 @@ function DashboardContent({ initialIsAdmin }: { initialIsAdmin: boolean }) {
               <Route path="/dashboard/expressions/:id" element={<ExpressionsBoardPage />} />
             </Routes>
           </main>
+
+          {/* Logout Confirmation Dialog */}
+          <LogoutConfirmDialog
+            isOpen={logoutDialogOpen}
+            onClose={() => setLogoutDialogOpen(false)}
+            onConfirm={confirmLogout}
+          />
         </div>
       </BrowserRouter>
     </AdminProvider>

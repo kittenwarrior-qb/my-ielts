@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { X, Loader2 } from 'lucide-react';
+import ErrorDialog from '../dashboard/ErrorDialog';
 
 interface AddGrammarFormProps {
   onSuccess: () => void;
@@ -28,6 +29,8 @@ export default function AddGrammarForm({ onSuccess, onCancel }: AddGrammarFormPr
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [showErrorDialog, setShowErrorDialog] = useState(false);
+  const [errorDialogMessage, setErrorDialogMessage] = useState('');
 
   // JSON import state
   const [jsonInput, setJsonInput] = useState(GRAMMAR_JSON_TEMPLATE);
@@ -64,6 +67,12 @@ export default function AddGrammarForm({ onSuccess, onCancel }: AddGrammarFormPr
       const result = await response.json();
 
       if (!response.ok || !result.success) {
+        // Check if it's a permission error
+        if (response.status === 401 || response.status === 403) {
+          setErrorDialogMessage('Bạn cần đăng nhập với tài khoản admin để thực hiện thao tác này');
+          setShowErrorDialog(true);
+          return;
+        }
         throw new Error(result.error || 'Failed to create grammar');
       }
 
@@ -330,8 +339,10 @@ export default function AddGrammarForm({ onSuccess, onCancel }: AddGrammarFormPr
             <button
               type="button"
               onClick={onCancel}
-              className="px-6 py-3 border-2 border-gray-300 rounded-lg font-bold hover:bg-gray-50 transition-all duration-150 active:translate-y-[4px]"
-              style={{ boxShadow: '0 4px 0 0 #9ca3af' }}
+              className="px-6 py-3 border-2 border-gray-300 rounded-lg font-bold transition-all duration-150 active:translate-y-[4px]"
+              style={{ boxShadow: '0 4px 0 0 #9ca3af', backgroundColor: 'white' }}
+              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+              onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'white'}
               onMouseDown={(e) => e.currentTarget.style.boxShadow = '0 0 0 0 #9ca3af'}
               onMouseUp={(e) => e.currentTarget.style.boxShadow = '0 4px 0 0 #9ca3af'}
             >
@@ -340,8 +351,10 @@ export default function AddGrammarForm({ onSuccess, onCancel }: AddGrammarFormPr
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-3 text-white rounded-lg font-bold hover:bg-[#FA5252] disabled:bg-gray-400 flex items-center gap-2 transition-all duration-150 active:translate-y-[4px]"
+              className="px-6 py-3 text-white rounded-lg font-bold disabled:bg-gray-400 flex items-center gap-2 transition-all duration-150 active:translate-y-[4px]"
               style={{ backgroundColor: '#FF6B6B', boxShadow: '0 4px 0 0 #CC3333' }}
+              onMouseOver={(e) => !loading && (e.currentTarget.style.backgroundColor = '#FA5252')}
+              onMouseOut={(e) => !loading && (e.currentTarget.style.backgroundColor = '#FF6B6B')}
               onMouseDown={(e) => !loading && (e.currentTarget.style.boxShadow = '0 0 0 0 #CC3333')}
               onMouseUp={(e) => !loading && (e.currentTarget.style.boxShadow = '0 4px 0 0 #CC3333')}
             >
@@ -351,6 +364,17 @@ export default function AddGrammarForm({ onSuccess, onCancel }: AddGrammarFormPr
           </div>
         </form>
       </div>
+
+      {/* Error Dialog */}
+      <ErrorDialog
+        isOpen={showErrorDialog}
+        title="Không có quyền"
+        message={errorDialogMessage}
+        onClose={() => {
+          setShowErrorDialog(false);
+          onCancel();
+        }}
+      />
     </div>
   );
 }

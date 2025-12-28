@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { getSession } from '../../../lib/auth';
+import { getSession, parseSessionToken } from '../../../lib/auth';
 
 export const GET: APIRoute = async ({ cookies }) => {
   const session = getSession(cookies);
@@ -18,12 +18,28 @@ export const GET: APIRoute = async ({ cookies }) => {
     );
   }
 
-  // If session exists, user is admin (based on current auth system)
+  // Parse session to get user info
+  const userData = parseSessionToken(session);
+  
+  if (!userData) {
+    return new Response(
+      JSON.stringify({ 
+        isLoggedIn: false,
+        isAdmin: false,
+        username: null
+      }),
+      { 
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
+  }
+
   return new Response(
     JSON.stringify({ 
       isLoggedIn: true,
-      isAdmin: true,
-      username: 'admin'
+      isAdmin: userData.isAdmin,
+      username: userData.username
     }),
     { 
       status: 200,

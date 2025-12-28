@@ -91,24 +91,22 @@ export default function VocabularyBoardDetail({ boardId }: VocabularyBoardDetail
 
         {/* Action Buttons */}
         <div className="flex gap-2 mb-4 sm:mb-6 overflow-x-auto pb-2">
-          {isAdmin && (
-            <button 
-              onClick={() => setShowAddForm(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-white font-bold transition-all duration-150 whitespace-nowrap active:translate-y-[4px]"
-              style={{ 
-                backgroundColor: '#FF6B6B', 
-                fontSize: '1rem',
-                boxShadow: '0 4px 0 0 #CC3333'
-              }}
-              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#FA5252'}
-              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#FF6B6B'}
-              onMouseDown={(e) => e.currentTarget.style.boxShadow = '0 0 0 0 #CC3333'}
-              onMouseUp={(e) => e.currentTarget.style.boxShadow = '0 4px 0 0 #CC3333'}
-            >
-              <Plus className="w-5 h-5" />
-              Thêm Vocabulary
-            </button>
-          )}
+          <button 
+            onClick={() => setShowAddForm(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-white font-bold transition-all duration-150 whitespace-nowrap active:translate-y-[4px]"
+            style={{ 
+              backgroundColor: '#FF6B6B', 
+              fontSize: '1rem',
+              boxShadow: '0 4px 0 0 #CC3333'
+            }}
+            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#FA5252'}
+            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#FF6B6B'}
+            onMouseDown={(e) => e.currentTarget.style.boxShadow = '0 0 0 0 #CC3333'}
+            onMouseUp={(e) => e.currentTarget.style.boxShadow = '0 4px 0 0 #CC3333'}
+          >
+            <Plus className="w-5 h-5" />
+            Thêm Vocabulary
+          </button>
         </div>
 
         {/* Desktop Table / Mobile Cards */}

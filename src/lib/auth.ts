@@ -3,24 +3,41 @@ import type { AstroCookies } from 'astro';
 const SESSION_COOKIE_NAME = 'admin_session';
 const SESSION_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
 
-// Hardcoded admin credentials
-const ADMIN_USERNAME = 'admin';
-const ADMIN_PASSWORD = '123';
+// Hardcoded credentials
+const USERS = [
+  { username: 'admin', password: 'Quoc@2604', isAdmin: true },
+  { username: 'user', password: '123', isAdmin: false },
+];
 
 /**
- * Verify admin credentials
+ * Verify credentials and return user info
  */
-export function verifyCredentials(username: string, password: string): boolean {
-  return username === ADMIN_USERNAME && password === ADMIN_PASSWORD;
+export function verifyCredentials(username: string, password: string): { isValid: boolean; isAdmin: boolean } {
+  const user = USERS.find(u => u.username === username && u.password === password);
+  return {
+    isValid: !!user,
+    isAdmin: user?.isAdmin || false,
+  };
 }
 
 /**
- * Create session token (simple implementation)
+ * Create session token with user info
  */
-export function createSessionToken(): string {
-  return Buffer.from(
-    `${Date.now()}-${Math.random().toString(36)}`
-  ).toString('base64');
+export function createSessionToken(username: string, isAdmin: boolean): string {
+  const data = { username, isAdmin, timestamp: Date.now() };
+  return Buffer.from(JSON.stringify(data)).toString('base64');
+}
+
+/**
+ * Parse session token
+ */
+export function parseSessionToken(token: string): { username: string; isAdmin: boolean } | null {
+  try {
+    const data = JSON.parse(Buffer.from(token, 'base64').toString());
+    return { username: data.username, isAdmin: data.isAdmin };
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -77,7 +94,11 @@ export interface AdminUser {
  * Require admin authentication (use in API routes)
  */
 export function requireAdmin(cookies: AstroCookies): boolean {
-  return isAuthenticated(cookies);
+  const session = getSession(cookies);
+  if (!session) return false;
+  
+  const userData = parseSessionToken(session);
+  return userData?.isAdmin || false;
 }
 
 /**
@@ -85,8 +106,13 @@ export function requireAdmin(cookies: AstroCookies): boolean {
  */
 export function getAdminStatus(cookies: AstroCookies): AdminUser {
   const session = getSession(cookies);
+  if (!session) {
+    return { isAdmin: false, sessionToken: '' };
+  }
+  
+  const userData = parseSessionToken(session);
   return {
-    isAdmin: !!session,
-    sessionToken: session || '',
+    isAdmin: userData?.isAdmin || false,
+    sessionToken: session,
   };
 }
