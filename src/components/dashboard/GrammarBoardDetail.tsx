@@ -41,6 +41,9 @@ export default function GrammarBoardDetail({ boardId }: GrammarBoardDetailProps)
   const itemIds = (board?.itemIds as string[]) || [];
   const { data: grammarItems, isLoading: itemsLoading } = useGrammarByIds(itemIds);
 
+  // Sort grammar items alphabetically by title
+  const sortedGrammarItems = grammarItems?.sort((a, b) => a.title.localeCompare(b.title)) || [];
+
   const isLoading = boardLoading || itemsLoading;
 
   useEffect(() => {
@@ -178,7 +181,7 @@ export default function GrammarBoardDetail({ boardId }: GrammarBoardDetailProps)
 
         {/* Grammar Items Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-          {grammarItems?.map((item) => (
+          {sortedGrammarItems?.map((item) => (
             <div
               key={item.id}
               className="border border-gray-200 bg-white p-6 hover:bg-gray-50 transition-colors relative group"

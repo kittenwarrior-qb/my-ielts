@@ -45,7 +45,9 @@ async function fetchBoardWithItems(boardId: string) {
   const allVocabulary: Vocabulary[] = await vocabRes.json();
 
   const itemIds = board.itemIds as string[];
-  const vocabulary = allVocabulary.filter(v => itemIds.includes(v.id));
+  const vocabulary = allVocabulary
+    .filter(v => itemIds.includes(v.id))
+    .sort((a, b) => a.word.localeCompare(b.word)); // Sort alphabetically
 
   return { board, vocabulary };
 }

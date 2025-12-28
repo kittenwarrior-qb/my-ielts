@@ -39,6 +39,9 @@ export default function ExpressionsBoardDetail({ boardId }: ExpressionsBoardDeta
   const itemIds = (board?.itemIds as string[]) || [];
   const { data: expressionItems, isLoading: itemsLoading } = useExpressionsByIds(itemIds);
 
+  // Sort expressions alphabetically
+  const sortedExpressionItems = expressionItems?.sort((a, b) => a.expression.localeCompare(b.expression)) || [];
+
   const isLoading = boardLoading || itemsLoading;
 
   useEffect(() => {
@@ -170,7 +173,7 @@ export default function ExpressionsBoardDetail({ boardId }: ExpressionsBoardDeta
 
         {/* Expression Items Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-          {expressionItems?.map((item) => (
+          {sortedExpressionItems?.map((item) => (
             <div
               key={item.id}
               className="border border-gray-200 bg-white p-6 hover:bg-gray-50 transition-colors relative group"
