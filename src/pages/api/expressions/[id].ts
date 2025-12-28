@@ -2,6 +2,39 @@ import type { APIRoute } from 'astro';
 import { expressionsRepo } from '../../../lib/repositories/expressions';
 import { isAuthenticated } from '../../../lib/auth';
 
+export const GET: APIRoute = async ({ params }) => {
+  try {
+    const { id } = params;
+
+    if (!id) {
+      return new Response(JSON.stringify({ error: 'Missing id parameter' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const expressionItem = await expressionsRepo.getById(id);
+
+    if (!expressionItem) {
+      return new Response(JSON.stringify({ error: 'Expression not found' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    return new Response(JSON.stringify(expressionItem), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (error) {
+    console.error('GET /api/expressions/[id] error:', error);
+    return new Response(JSON.stringify({ error: 'Failed to fetch expression' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+};
+
 export const PUT: APIRoute = async ({ params, request, cookies }) => {
   // Check authentication
   if (!isAuthenticated(cookies)) {

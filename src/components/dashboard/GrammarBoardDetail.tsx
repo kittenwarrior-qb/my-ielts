@@ -1,0 +1,162 @@
+import { useQuery } from '@tanstack/react-query';
+import { useGrammarByIds } from '../../hooks/useData';
+import type { Board, Grammar } from '@/lib/db/schema';
+import { Plus, Zap, Target, ArrowLeft } from 'lucide-react';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import GrammarDetailModal from './GrammarDetailModal.tsx';
+
+interface GrammarBoardDetailProps {
+  boardId: string;
+}
+
+async function fetchBoard(boardId: string): Promise<Board> {
+  const response = await fetch(`/api/boards/${boardId}`);
+  if (!response.ok) throw new Error('Failed to fetch board');
+  return response.json();
+}
+
+export default function GrammarBoardDetail({ boardId }: GrammarBoardDetailProps) {
+  const [selectedGrammar, setSelectedGrammar] = useState<Grammar | null>(null);
+  
+  const { data: board, isLoading: boardLoading } = useQuery({
+    queryKey: ['board', boardId],
+    queryFn: () => fetchBoard(boardId),
+  });
+
+  const itemIds = (board?.itemIds as string[]) || [];
+  const { data: grammarItems, isLoading: itemsLoading } = useGrammarByIds(itemIds);
+
+  const isLoading = boardLoading || itemsLoading;
+
+  if (isLoading) {
+    return (
+      <div className="p-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-48 bg-gray-200 rounded"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!board) return null;
+
+  const getLevelColor = (level: string) => {
+    switch (level) {
+      case 'beginner':
+        return 'bg-green-100 text-green-800';
+      case 'intermediate':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'advanced':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  return (
+    <div className="p-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-6">
+          <Link 
+            to="/dashboard/grammar" 
+            className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-black mb-4"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Quay lại Grammar Boards
+          </Link>
+          <h1 className="text-2xl font-bold text-black mb-2">{board.name}</h1>
+          <p className="text-gray-600">{board.description || 'Không có mô tả'}</p>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-2 mb-6">
+          <button className="flex items-center gap-2 px-4 py-2 bg-black text-white text-sm hover:bg-gray-800">
+            <Plus className="w-4 h-4" />
+            Thêm Grammar
+          </button>
+          <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-sm hover:bg-gray-50">
+            <Zap className="w-4 h-4" />
+            Speed Review
+          </button>
+          <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-sm hover:bg-gray-50">
+            <Target className="w-4 h-4" />
+            Trắc nghiệm
+          </button>
+        </div>
+
+        {/* Grammar Items Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {grammarItems?.map((item) => (
+            <div
+              key={item.id}
+              onClick={() => setSelectedGrammar(item)}
+              className="border border-gray-200 bg-white p-6 hover:bg-gray-50 cursor-pointer transition-colors"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <h3 className="font-semibold text-black text-lg">{item.title}</h3>
+                <span className={`px-2 py-1 text-xs font-medium rounded ${getLevelColor(item.level)}`}>
+                  {item.level}
+                </span>
+              </div>
+              
+              <div className="bg-gray-50 p-3 rounded mb-3">
+                <code className="text-sm text-gray-700 font-mono">
+                  {item.structure.length > 80 ? item.structure.substring(0, 80) + '...' : item.structure}
+                </code>
+              </div>
+
+              <p className="text-sm text-gray-600 line-clamp-2 mb-3">
+                {item.explanation}
+              </p>
+
+              {item.topics && Array.isArray(item.topics) && item.topics.length > 0 ? (
+                <div className="flex flex-wrap gap-1">
+                  {(item.topics as string[]).slice(0, 3).map((topic: string, idx: number) => (
+                    <span key={idx} className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded">
+                      {topic}
+                    </span>
+                  ))}
+                  {(item.topics as string[]).length > 3 && (
+                    <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
+                      +{(item.topics as string[]).length - 3}
+                    </span>
+                  )}
+                </div>
+              ) : null}
+            </div>
+          ))}
+        </div>
+
+        {grammarItems?.length === 0 && (
+          <div className="text-center py-12 border border-gray-200 bg-white">
+            <p className="text-gray-500">Chưa có grammar items nào trong bộ này</p>
+          </div>
+        )}
+
+        {/* Stats */}
+        <div className="mt-4 text-sm text-gray-600">
+          {grammarItems?.length || 0} grammar items
+        </div>
+
+        {/* Grammar Detail Modal */}
+        {selectedGrammar && (
+          <GrammarDetailModal
+            item={selectedGrammar}
+            isOpen={!!selectedGrammar}
+            onClose={() => setSelectedGrammar(null)}
+          />
+        )}
+      </div>
+    </div>
+  );
+}

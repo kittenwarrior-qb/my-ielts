@@ -61,6 +61,9 @@ export const expressions = pgTable('expressions', {
   relatedWords: jsonb('related_words').notNull(), // Array of strings
   topics: jsonb('topics').notNull(), // Array of strings
   category: text('category'), // For phrases: speaking, writing, general
+  externalLinks: jsonb('external_links'), // Array of {type, url, title, thumbnail?}
+  context: jsonb('context'), // {register, mode, frequency}
+  synonyms: jsonb('synonyms'), // Array of strings
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -76,6 +79,7 @@ export const grammar = pgTable('grammar', {
   notes: text('notes'), // Additional notes
   topics: jsonb('topics').notNull(), // Array of strings
   level: levelEnum('level').notNull(),
+  externalLinks: jsonb('external_links'), // Array of {type, url, title, thumbnail?}
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

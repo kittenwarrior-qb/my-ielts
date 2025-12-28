@@ -1,6 +1,6 @@
 import { db } from '../db/client';
 import { expressions } from '../db/schema';
-import { eq, like, sql, and, or } from 'drizzle-orm';
+import { eq, like, sql, and, or, inArray } from 'drizzle-orm';
 import type { Expression } from '../db/schema';
 
 export interface ExpressionFilters {
@@ -50,6 +50,17 @@ export class ExpressionsRepository {
     }
 
     const results = await query;
+    return results as Expression[];
+  }
+
+  async getByIds(ids: string[]): Promise<Expression[]> {
+    if (ids.length === 0) return [];
+
+    const results = await db
+      .select()
+      .from(expressions)
+      .where(inArray(expressions.id, ids));
+
     return results as Expression[];
   }
 
