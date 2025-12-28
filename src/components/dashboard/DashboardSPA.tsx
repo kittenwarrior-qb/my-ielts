@@ -4,11 +4,13 @@ import { getQueryClient } from '../../lib/queryClient';
 import { AdminProvider } from '../../contexts/AdminContext';
 import DataPrefetcher from '../DataPrefetcher';
 import BoardsList from './BoardsList';
+import BoardsListWithLessons from './BoardsListWithLessons';
 import VocabularyBoardDetail from './VocabularyBoardDetail';
 import VocabularyBoardsGrid from './VocabularyBoardsGrid';
 import GrammarBoardsGrid from './GrammarBoardsGrid';
-import ExpressionsBoardsGrid from './ExpressionsBoardsGrid';
 import GrammarBoardDetail from './GrammarBoardDetail';
+import GrammarLessonDetail from './GrammarLessonDetail';
+import ExpressionsBoardsGrid from './ExpressionsBoardsGrid';
 import ExpressionsBoardDetail from './ExpressionsBoardDetail';
 import LogoutConfirmDialog from './LogoutConfirmDialog';
 import { Home, BookOpen, FileText, MessageSquare, Menu, X } from 'lucide-react';
@@ -61,7 +63,7 @@ function Sidebar({ isOpen, onClose, isAdmin, username, isLoggedIn, onLogout }: {
       
       {/* Sidebar */}
       <aside className={`
-        w-[250px] bg-white border-r border-gray-200 fixed h-screen overflow-y-auto z-50 transition-transform duration-300 flex flex-col
+        w-[280px] bg-white border-r border-gray-200 fixed h-screen overflow-y-auto z-50 transition-transform duration-300 flex flex-col
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         lg:translate-x-0
       `}>
@@ -138,10 +140,10 @@ function Sidebar({ isOpen, onClose, isAdmin, username, isLoggedIn, onLogout }: {
           {boardType && (
             <div className="border-t border-gray-200 pt-4">
               <div className="px-3 py-2 mb-2">
-                <span className="text-xs font-semibold text-gray-500 uppercase">Boards</span>
+                <span className="text-xs font-semibold text-gray-500 uppercase">Luyện tập tổng hợp</span>
               </div>
 
-              <BoardsList type={boardType} />
+              <BoardsListWithLessons type={boardType} />
             </div>
           )}
         </nav>
@@ -379,11 +381,6 @@ function VocabularyBoardPage() {
   return <VocabularyBoardDetail boardId={id!} />;
 }
 
-function GrammarBoardPage() {
-  const { id } = useParams();
-  return <GrammarBoardDetail boardId={id!} />;
-}
-
 function ExpressionsBoardPage() {
   const { id } = useParams();
   return <ExpressionsBoardDetail boardId={id!} />;
@@ -416,7 +413,7 @@ function DashboardContent({ initialIsAdmin }: { initialIsAdmin: boolean }) {
     <AdminProvider isAdmin={isAdmin}>
       <DataPrefetcher />
       <BrowserRouter>
-        <div className="min-h-screen flex bg-white">
+        <div className="min-h-screen flex bg-pink-50/30">
           <Sidebar 
             isOpen={sidebarOpen} 
             onClose={() => setSidebarOpen(false)}
@@ -439,11 +436,12 @@ function DashboardContent({ initialIsAdmin }: { initialIsAdmin: boolean }) {
             </h1>
           </div>
 
-          <main className="flex-1 lg:ml-[250px] pt-16 lg:pt-0">
+          <main className="flex-1 lg:ml-[280px] pt-16 lg:pt-0">
             <Routes>
               <Route path="/dashboard" element={<DashboardHome />} />
               <Route path="/dashboard/grammar" element={<GrammarBoardsGrid />} />
-              <Route path="/dashboard/grammar/:id" element={<GrammarBoardPage />} />
+              <Route path="/dashboard/grammar/board/:boardId" element={<GrammarBoardDetail />} />
+              <Route path="/dashboard/grammar/lesson/:id" element={<GrammarLessonDetail />} />
               <Route path="/dashboard/vocabulary" element={<VocabularyBoardsGrid />} />
               <Route path="/dashboard/vocabulary/:id" element={<VocabularyBoardPage />} />
               <Route path="/dashboard/expressions" element={<ExpressionsBoardsGrid />} />

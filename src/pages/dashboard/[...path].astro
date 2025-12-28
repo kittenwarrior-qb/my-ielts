@@ -11,7 +11,7 @@ const adminStatus = getAdminStatus(Astro.cookies);
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <title>Dashboard | My IELTS</title>
+    <title>My IELTS</title>
   </head>
   <body>
     <DashboardSPA client:only="react" isAdmin={adminStatus.isAdmin} />

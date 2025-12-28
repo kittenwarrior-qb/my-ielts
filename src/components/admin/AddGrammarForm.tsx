@@ -4,8 +4,10 @@ import ErrorDialog from '../dashboard/ErrorDialog';
 
 interface AddGrammarFormProps {
   boardId?: string; // Optional: if provided, add grammar to this board
+  lessonId?: string; // Optional: if provided, add grammar to this lesson
   onSuccess: () => void;
-  onCancel: () => void;
+  onCancel?: () => void;
+  onClose?: () => void;
 }
 
 type InputMethod = 'manual' | 'json';
@@ -25,7 +27,7 @@ const GRAMMAR_JSON_TEMPLATE = `{
   "externalLinks": []
 }`;
 
-export default function AddGrammarForm({ boardId, onSuccess, onCancel }: AddGrammarFormProps) {
+export default function AddGrammarForm({ boardId, lessonId, onSuccess, onCancel, onClose }: AddGrammarFormProps) {
   const [method, setMethod] = useState<InputMethod>('manual');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -94,6 +96,25 @@ export default function AddGrammarForm({ boardId, onSuccess, onCancel }: AddGram
         }
       }
 
+      // If lessonId is provided, add the grammar to the lesson
+      if (lessonId && result.data?.id) {
+        try {
+          const lessonRes = await fetch(`/api/lessons/${lessonId}`);
+          if (lessonRes.ok) {
+            const lesson = await lessonRes.json();
+            const itemIds = [...(lesson.itemIds || []), result.data.id];
+            
+            await fetch(`/api/lessons/${lessonId}/update`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ itemIds }),
+            });
+          }
+        } catch (lessonError) {
+          console.error('Error adding grammar to lesson:', lessonError);
+        }
+      }
+
       setSuccess('Tạo grammar thành công!');
       setTimeout(() => {
         onSuccess();
@@ -135,7 +156,7 @@ export default function AddGrammarForm({ boardId, onSuccess, onCancel }: AddGram
       <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex justify-between items-center">
           <h2 className="text-xl font-bold">Thêm Grammar Mới</h2>
-          <button onClick={onCancel} className="text-gray-500 hover:text-gray-700">
+          <button onClick={onClose || onCancel || (() => {})} className="text-gray-500 hover:text-gray-700">
             <X className="w-6 h-6" />
           </button>
         </div>
@@ -390,7 +411,8 @@ export default function AddGrammarForm({ boardId, onSuccess, onCancel }: AddGram
         message={errorDialogMessage}
         onClose={() => {
           setShowErrorDialog(false);
-          onCancel();
+          if (onCancel) onCancel();
+          if (onClose) onClose();
         }}
       />
     </div>

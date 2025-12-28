@@ -6,12 +6,13 @@ import type { Grammar } from '@/lib/db/schema';
 interface EditGrammarFormProps {
   grammar: Grammar;
   onSuccess: () => void;
-  onCancel: () => void;
+  onCancel?: () => void;
+  onClose?: () => void;
 }
 
 type InputMethod = 'manual' | 'json';
 
-export default function EditGrammarForm({ grammar, onSuccess, onCancel }: EditGrammarFormProps) {
+export default function EditGrammarForm({ grammar, onSuccess, onCancel, onClose }: EditGrammarFormProps) {
   const [method, setMethod] = useState<InputMethod>('manual');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -112,7 +113,7 @@ export default function EditGrammarForm({ grammar, onSuccess, onCancel }: EditGr
       <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex justify-between items-center">
           <h2 className="text-xl font-bold">Chỉnh sửa Grammar: {grammar.title}</h2>
-          <button onClick={onCancel} className="text-gray-500 hover:text-gray-700">
+          <button onClick={onClose || onCancel} className="text-gray-500 hover:text-gray-700">
             <X className="w-6 h-6" />
           </button>
         </div>
@@ -335,7 +336,7 @@ export default function EditGrammarForm({ grammar, onSuccess, onCancel }: EditGr
           <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200">
             <button
               type="button"
-              onClick={onCancel}
+              onClick={onClose || onCancel}
               className="px-6 py-3 border-2 border-gray-300 rounded-lg font-bold transition-all duration-150 active:translate-y-[4px]"
               style={{ boxShadow: '0 4px 0 0 #9ca3af', backgroundColor: 'white' }}
               onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}

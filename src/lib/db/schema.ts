@@ -17,6 +17,19 @@ export const boards = pgTable('boards', {
   color: text('color'), // Optional color for the board
   icon: text('icon'), // Optional emoji icon
   itemIds: jsonb('item_ids').notNull(), // Array of vocabulary/expression/grammar IDs
+  order: integer('order').notNull().default(0), // Display order
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Lessons Table (each board has multiple lessons)
+export const lessons = pgTable('lessons', {
+  id: text('id').primaryKey(),
+  boardId: text('board_id').notNull().references(() => boards.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(),
+  description: text('description'),
+  order: integer('order').notNull().default(0), // Display order within board
+  itemIds: jsonb('item_ids').notNull(), // Array of grammar/vocabulary/expression IDs
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -126,6 +139,9 @@ export const skillContent = pgTable('skill_content', {
 // Types for TypeScript
 export type Board = typeof boards.$inferSelect;
 export type NewBoard = typeof boards.$inferInsert;
+
+export type Lesson = typeof lessons.$inferSelect;
+export type NewLesson = typeof lessons.$inferInsert;
 
 export type Topic = typeof topics.$inferSelect;
 export type NewTopic = typeof topics.$inferInsert;

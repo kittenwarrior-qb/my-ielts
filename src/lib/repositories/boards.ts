@@ -5,6 +5,7 @@ import type { Board } from '../db/schema';
 import { vocabularyRepo } from './vocabulary';
 import { expressionsRepo } from './expressions';
 import { grammarRepo } from './grammar';
+import { lessonsRepo } from './lessons';
 
 export type BoardType = 'grammar' | 'vocabulary' | 'idioms';
 
@@ -20,7 +21,7 @@ export class BoardsRepository {
       query = query.where(eq(boards.type, filters.type)) as any;
     }
 
-    const results = await query;
+    const results = await query.orderBy(boards.order);
     return results as Board[];
   }
 
@@ -66,6 +67,27 @@ export class BoardsRepository {
     const board = await this.getById(id);
     if (!board) return false;
 
+    // For grammar boards, delete all lessons and their items first
+    if (board.type === 'grammar') {
+      const boardLessons = await lessonsRepo.getAll(id);
+      console.log(`Found ${boardLessons.length} lessons in grammar board "${board.name}"`);
+      
+      for (const lesson of boardLessons) {
+        const lessonItemIds = Array.isArray(lesson.itemIds) ? lesson.itemIds : [];
+        
+        if (lessonItemIds.length > 0) {
+          console.log(`Deleting ${lessonItemIds.length} grammar items from lesson "${lesson.title}"...`);
+          for (const itemId of lessonItemIds) {
+            await grammarRepo.delete(itemId as string);
+          }
+        }
+        
+        // Delete the lesson itself
+        console.log(`Deleting lesson "${lesson.title}"...`);
+        await lessonsRepo.delete(lesson.id);
+      }
+    }
+
     // Delete all items in the board based on board type
     const itemIds = Array.isArray(board.itemIds) ? board.itemIds : [];
     
@@ -83,7 +105,7 @@ export class BoardsRepository {
           await expressionsRepo.delete(itemId as string);
         }
       } else if (board.type === 'grammar') {
-        // Delete grammar items
+        // Delete grammar items directly in board (if any)
         console.log(`Deleting ${itemIds.length} grammar items from board "${board.name}"...`);
         for (const itemId of itemIds) {
           await grammarRepo.delete(itemId as string);
