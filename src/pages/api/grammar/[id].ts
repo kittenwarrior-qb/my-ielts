@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { grammarRepo } from '../../../lib/repositories/grammar';
+import { isAuthenticated } from '../../../lib/auth';
 
 export const GET: APIRoute = async ({ params }) => {
   try {
@@ -34,12 +35,28 @@ export const GET: APIRoute = async ({ params }) => {
   }
 };
 
-export const PUT: APIRoute = async ({ params, request }) => {
+export const PUT: APIRoute = async ({ params, request, cookies }) => {
+  // Check authentication and admin role
+  const user = isAuthenticated(cookies);
+  if (!user) {
+    return new Response(
+      JSON.stringify({ success: false, error: 'Unauthorized' }),
+      { status: 401, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+
+  if (user.role !== 'admin') {
+    return new Response(
+      JSON.stringify({ success: false, error: 'Bạn không có quyền thực hiện thao tác này' }),
+      { status: 403, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+
   try {
     const { id } = params;
 
     if (!id) {
-      return new Response(JSON.stringify({ error: 'Missing id parameter' }), {
+      return new Response(JSON.stringify({ success: false, error: 'Missing id parameter' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       });
@@ -49,31 +66,47 @@ export const PUT: APIRoute = async ({ params, request }) => {
     const updatedGrammar = await grammarRepo.update(id, data);
 
     if (!updatedGrammar) {
-      return new Response(JSON.stringify({ error: 'Grammar item not found' }), {
+      return new Response(JSON.stringify({ success: false, error: 'Grammar item not found' }), {
         status: 404,
         headers: { 'Content-Type': 'application/json' },
       });
     }
 
-    return new Response(JSON.stringify(updatedGrammar), {
+    return new Response(JSON.stringify({ success: true, data: updatedGrammar }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
     console.error('PUT /api/grammar/[id] error:', error);
-    return new Response(JSON.stringify({ error: 'Failed to update grammar item' }), {
+    return new Response(JSON.stringify({ success: false, error: 'Failed to update grammar item' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
   }
 };
 
-export const DELETE: APIRoute = async ({ params }) => {
+export const DELETE: APIRoute = async ({ params, cookies }) => {
+  // Check authentication and admin role
+  const user = isAuthenticated(cookies);
+  if (!user) {
+    return new Response(
+      JSON.stringify({ success: false, error: 'Unauthorized' }),
+      { status: 401, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+
+  if (user.role !== 'admin') {
+    return new Response(
+      JSON.stringify({ success: false, error: 'Bạn không có quyền thực hiện thao tác này' }),
+      { status: 403, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+
   try {
     const { id } = params;
 
     if (!id) {
-      return new Response(JSON.stringify({ error: 'Missing id parameter' }), {
+      return new Response(JSON.stringify({ success: false, error: 'Missing id parameter' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       });
@@ -82,7 +115,7 @@ export const DELETE: APIRoute = async ({ params }) => {
     const deleted = await grammarRepo.delete(id);
 
     if (!deleted) {
-      return new Response(JSON.stringify({ error: 'Grammar item not found' }), {
+      return new Response(JSON.stringify({ success: false, error: 'Grammar item not found' }), {
         status: 404,
         headers: { 'Content-Type': 'application/json' },
       });
@@ -94,7 +127,7 @@ export const DELETE: APIRoute = async ({ params }) => {
     });
   } catch (error) {
     console.error('DELETE /api/grammar/[id] error:', error);
-    return new Response(JSON.stringify({ error: 'Failed to delete grammar item' }), {
+    return new Response(JSON.stringify({ success: false, error: 'Failed to delete grammar item' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });

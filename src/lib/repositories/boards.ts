@@ -2,6 +2,9 @@ import { db } from '../db/client';
 import { boards } from '../db/schema';
 import { eq, and } from 'drizzle-orm';
 import type { Board } from '../db/schema';
+import { vocabularyRepo } from './vocabulary';
+import { expressionsRepo } from './expressions';
+import { grammarRepo } from './grammar';
 
 export type BoardType = 'grammar' | 'vocabulary' | 'idioms';
 
@@ -59,6 +62,36 @@ export class BoardsRepository {
   }
 
   async delete(id: string): Promise<boolean> {
+    // Get board first to access its items
+    const board = await this.getById(id);
+    if (!board) return false;
+
+    // Delete all items in the board based on board type
+    const itemIds = Array.isArray(board.itemIds) ? board.itemIds : [];
+    
+    if (itemIds.length > 0) {
+      if (board.type === 'vocabulary') {
+        // Delete vocabulary items
+        console.log(`Deleting ${itemIds.length} vocabulary items from board "${board.name}"...`);
+        for (const itemId of itemIds) {
+          await vocabularyRepo.delete(itemId as string);
+        }
+      } else if (board.type === 'idioms') {
+        // Delete expression items
+        console.log(`Deleting ${itemIds.length} expression items from board "${board.name}"...`);
+        for (const itemId of itemIds) {
+          await expressionsRepo.delete(itemId as string);
+        }
+      } else if (board.type === 'grammar') {
+        // Delete grammar items
+        console.log(`Deleting ${itemIds.length} grammar items from board "${board.name}"...`);
+        for (const itemId of itemIds) {
+          await grammarRepo.delete(itemId as string);
+        }
+      }
+    }
+
+    // Delete the board itself
     const results = await db
       .delete(boards)
       .where(eq(boards.id, id))

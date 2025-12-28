@@ -77,11 +77,13 @@ export default function VocabularyBoardDetail({ boardId }: VocabularyBoardDetail
   }, [menuOpenId]);
 
   const handleEdit = (vocab: Vocabulary) => {
+    console.log('handleEdit called', vocab);
     setMenuOpenId(null);
     setSelectedVocab(vocab);
   };
 
   const handleDelete = async (vocab: Vocabulary) => {
+    console.log('handleDelete called', vocab);
     setMenuOpenId(null);
     
     if (!confirm(`Bạn có chắc chắn muốn xóa "${vocab.word}"?`)) {
@@ -166,7 +168,7 @@ export default function VocabularyBoardDetail({ boardId }: VocabularyBoardDetail
         </div>
 
         {/* Desktop Table / Mobile Cards */}
-        <div className="hidden md:block border border-gray-200 bg-white overflow-x-auto rounded-xl">
+        <div className="hidden md:block border border-gray-200 bg-white rounded-xl">
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
@@ -213,7 +215,7 @@ export default function VocabularyBoardDetail({ boardId }: VocabularyBoardDetail
                         </button>
 
                         {menuOpenId === item.id && (
-                          <div className="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
+                          <div className="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
                             <button
                               onClick={() => handleEdit(item)}
                               className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
@@ -270,7 +272,7 @@ export default function VocabularyBoardDetail({ boardId }: VocabularyBoardDetail
                   </button>
 
                   {menuOpenId === item.id && (
-                    <div className="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
+                    <div className="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
                       <button
                         onClick={() => handleEdit(item)}
                         className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
